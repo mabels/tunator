@@ -1,28 +1,25 @@
 
 
 #include <algorithm>
+
 #include "packet_buffer.hpp"
+#include "packet_statistic.hpp"
 
 #include <boost/lockfree/spsc_queue.hpp>
 
 class PacketQueue {
 private:
   PacketBuffer pb;
+  PacketStatistic ps;
   boost::lockfree::detail::runtime_sized_ringbuffer<Packet*> q;
-  size_t allocFailed;
-  size_t allocOk;
-  size_t pushActionFailed;
-  size_t popActionFailed;
-  size_t pushPacketSize;
-  size_t popPacketSize;
-  size_t pushOk;
-  size_t popOk;
-  size_t popEmpty;
-  size_t pushFailed;
 public:
   typedef std::function<ssize_t(Packet *)> PacketAction;
 
   PacketQueue(int mtu, int size) : pb(mtu, size), q(size) {
+  }
+
+  PacketStatistic getStatistic() {
+
   }
 
   void push(PacketAction action) {
