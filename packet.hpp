@@ -1,4 +1,5 @@
 
+#include <stdlib.h>
 
 class Packet {
 public:
@@ -10,4 +11,4 @@ public:
   void free() {
     used = false;
   }
-}
+};

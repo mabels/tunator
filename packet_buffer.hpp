@@ -1,5 +1,8 @@
 #include "packet.hpp"
 
+#include <stdlib.h>
+#include <memory>
+
 class PacketBuffer {
 private:
   const size_t size;
@@ -15,25 +18,29 @@ public:
     packets(std::unique_ptr<Packet>(new Packet[size])),
     buffer(std::unique_ptr<char>(new char[packetSize * size])) {
     for(size_t i = 0; i < size; ++i) {
-      auto packet = packets.ptr()[i];
-      packet->used = false;
-      packets->idx = i;
-      packets->size = 0;
-      packets->max_size = mtu;
-      packets->buf = buffer.ptr[i*packetSize];
+      auto &packet = packets.get()[i];
+      packet.used = false;
+      packet.idx = i;
+      packet.size = 0;
+      packet.max_size = mtu;
+      packet.buf = &(buffer.get()[i*packetSize]);
     }
   }
 
+  size_t getPacketSize() const { return packetSize; }
+  size_t getMtu() const { return mtu; }
+  size_t getSize() const { return size; }
+
   Packet* alloc() const {
     for(size_t i = 0; i < size; ++i) {
-      auto packet = packets.ptr()[i];
+      auto &packet = packets.get()[i];
       if (packet.used) {
         continue;
       }
-      packet->used = true;
-      return packet;
+      packet.used = true;
+      return &packet;
     }
     return 0;
   }
 
-}
+};
