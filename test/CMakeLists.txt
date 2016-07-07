@@ -14,3 +14,6 @@ add_test(packet_buffer_test packet_buffer_test)
 
 add_executable(packet_queue_test packet_queue_test.cpp)
 add_test(packet_queue_test packet_queue_test)
+
+add_executable(if_addrs_test if_addrs_test.cpp)
+add_test(if_addrs_test if_addrs_test)
