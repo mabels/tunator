@@ -1,6 +1,10 @@
 
 
 #include <algorithm>
+#include <memory>
+#include <functional>
+#include <thread>
+#include <iostream>
 
 #include "packet_buffer.hpp"
 #include "packet_statistic.hpp"
@@ -11,66 +15,78 @@ class PacketQueue {
 private:
   PacketBuffer pb;
   PacketStatistic ps;
-  boost::lockfree::detail::runtime_sized_ringbuffer<Packet*> q;
+  boost::lockfree::detail::runtime_sized_ringbuffer<Packet*, std::allocator<Packet*>> q;
+  const size_t blockWait;
 public:
   typedef std::function<ssize_t(Packet *)> PacketAction;
 
-  PacketQueue(int mtu, int size) : pb(mtu, size), q(size) {
+  explicit PacketQueue(size_t mtu, size_t size, size_t blockWait) :
+    pb(mtu, size),
+    q(size),
+    blockWait(blockWait) {
   }
 
   PacketStatistic getStatistic() {
-
+    return ps.collect();
   }
 
-  void push(PacketAction action) {
-    for(int wait = 0; true; wait += 10) {
+  bool push(PacketAction action) {
+    for(size_t wait = 0, tw = 0; tw < blockWait; wait += 10) {
         auto packet = pb.alloc();
         if (packet) {
-          ++allocOk;
+          ps.incAllocOk();
           const auto ret = action(packet);
           if (ret > 0) {
-            pushPacketSize += ret;
+            ps.addPushPacketSize(ret);
             packet->size = ret;
             if (q.push(packet)) {
-              ++pushOk;
+              ps.incPushOk();
+              return true;
             } else {
               packet->free();
-              ++pushFailed;
+              ps.incPushFailed();
+              return false;
             }
           } else {
             packet->free();
-            ++pushActionFailed;
+            ps.incPushActionFailed();
+            return false;
           }
-          wait = 0;
         } else {
-            ++allocFailed;
+            ps.incAllocFailed();
         }
-        wait = std::min(wait, 100);
+        wait = std::min(wait, 100ul);
+        tw += wait;
         std::this_thread::sleep_for(std::chrono::milliseconds(wait));
     }
+    ps.incPushTimeout();
+    return false;
   }
 
-  void pop(PacketAction action) {
-    size_t totalWait = 0;
-    for(int wait = 0; totalWait >= 1000; wait += 10) {
+  bool pop(PacketAction action) {
+    for(size_t wait = 0, totalWait = 0; totalWait < blockWait; wait += 10) {
       Packet *pkt;
-      if (q.pop(pkt)) {
-        popPacketSize += pkt->size;
+      if (q.pop(&pkt, 1)) {
+        //std::cerr << (size_t)pkt << std::endl;
+        ps.addPopPacketSize(pkt->size);
         if (action(pkt) >= 0) {
-          ++popOk;
+          ps.incPopOk();
         } else {
-          ++popActionFailed;
+          ps.incPopActionFailed();
         }
-        pkt.free();
+        pkt->free();
         wait = 0;
-        return;
+        return true;
       } else {
-        ++popEmpty;
+        //std::cerr << "--POP" << std::endl;
+        ps.incPopEmpty();
       }
-      wait = std::min(wait, 100);
+      wait = std::min(wait, 100ul);
       totalWait += wait;
       std::this_thread::sleep_for(std::chrono::milliseconds(wait));
     }
+    ps.incPopTimeout();
+    return false;
   }
 
 };

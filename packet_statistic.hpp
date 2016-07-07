@@ -1,6 +1,9 @@
 
 #include <chrono>
 
+#include <stdio.h>
+#include <string.h>
+
 using std::chrono::system_clock;
 class PacketStatistic {
   struct S_Data {
@@ -8,6 +11,8 @@ class PacketStatistic {
     size_t allocOk;
     size_t pushActionFailed;
     size_t popActionFailed;
+    size_t pushTimeout;
+    size_t popTimeout;
     size_t pushPacketSize;
     size_t popPacketSize;
     size_t pushOk;
@@ -20,13 +25,17 @@ class PacketStatistic {
   struct S_Data total;
 public:
   PacketStatistic() : started(system_clock::now()) {
+    memset(&current, 0, sizeof(S_Data));
+    memset(&total, 0, sizeof(S_Data));
   }
   void incAllocFailed() { ++current.allocFailed; }
   void incAllocOk() { ++current.allocOk; }
   void incPushActionFailed() { ++current.pushActionFailed; }
+  void incPushTimeout() { ++current.pushTimeout; }
+  void incPopTimeout() { ++current.popTimeout; }
   void incPopActionFailed() { ++current.popActionFailed; }
-  void incPushPacketSize() { ++current.pushPacketSize; }
-  void incPopPacketSize() { ++current.popPacketSize; }
+  void addPushPacketSize(size_t pbs) { current.pushPacketSize += pbs; }
+  void addPopPacketSize(size_t pbs) { current.popPacketSize += pbs; }
   void incPushOk() { ++current.pushOk; }
   void incPopOk() { ++current.popOk; }
   void incPopEmpty() { ++current.popEmpty; }
@@ -46,6 +55,8 @@ public:
     total.pushActionFailed += ret.current.pushActionFailed;
     total.popActionFailed += ret.current.popActionFailed;
     total.pushPacketSize += ret.current.pushPacketSize;
+    total.pushTimeout += ret.current.pushTimeout;
+    total.popTimeout += ret.current.popTimeout;
     total.popPacketSize += ret.current.popPacketSize;
     total.pushOk += ret.current.pushOk;
     total.popOk += ret.current.popOk;
