@@ -17,6 +17,9 @@ private:
   std::vector<std::string> addrs;
   std::vector<RouteVia> routes;
 public:
+  bool isEcho() const {
+    return addrs.empty();
+  }
   void addAddr(const std::string &addr) {
     addrs.push_back(addr);
   }

@@ -1,7 +1,13 @@
+
+#include "packet_queue.hpp"
+#include "if_addrs.hpp"
+
+#include <fcntl.h>
 #include <string>
-
-
 #include <thread>
+
+#define ELPP_THREAD_SAFE
+#include "easylogging++.h"
 
 #ifdef __APPLE_CC__
 int tun_alloc(std::string &dev) {
@@ -51,61 +57,96 @@ int tun_alloc(std::string &dev) {
 
 class TunDevice {
 private:
-  const PacketQueue fromTun;
-  const PacketQueue toTun;
-  const string tunDevName;
-  int tunFd;
+  const IfAddrs &ifAddrs;
+  PacketQueue fromTun;
+  PacketQueue toTun;
   bool running;
+  int tunFd;
+  std::string tunDevName;
   std::unique_ptr<std::thread> fromTunThread;
   std::unique_ptr<std::thread> toTunThread;
 
-  static void fromTunDelegate(TunDevice *td) {
-    td->fromTunAction();
-  }
-  void fromTunAction() {
-    while(running) {
-      fromTun.push([this](Packet *pkt) {
-          return read(tunFd, pkt->buf, pkt->max_size);
-      });
-    }
-  }
 
-  static void toTunDelegate(TunDevice *td) {
-    td->toTunAction();
-  }
-  void toTunAction() {
-    while(running) {
-      toTun.pop([this](Packet *pkt) {
-          return write(tunFd, pkt->buf, pkt->size);
-      });
-    }
-  }
-
-public:
-  TunDevice(size_t mtu, size_t qSize) :
-    running(true),
-    fromTun(mtu, qSize),
-    toTun(mtu, qSize),
-    tunDevName("") {
-  }
-
-  bool start() {
+  bool startOnTun() {
     const int fd = tun_alloc(tunDevName);
     if (fd < 0) {
       LOG(ERROR) << "tun_alloc failed with:" << errno;
       return false;
     }
     tunFd = fd;
-    fromTunThread = std::unique_ptr<std::thread>(new std::thread(fromTunAction, this));
-    toTunThread = std::unique_ptr<std::thread>(new std::thread(toTunAction, this));
+    fromTunThread = std::unique_ptr<std::thread>(new std::thread([this]() {
+      while(running) {
+        fromTun.push([this](Packet *pkt) {
+            return read(tunFd, pkt->buf, pkt->max_size);
+        });
+      }
+    }));
+    toTunThread = std::unique_ptr<std::thread>(new std::thread([this]() {
+      while(running) {
+        toTun.pop([this](Packet *pkt) {
+            return write(tunFd, pkt->buf, pkt->size);
+        });
+      }
+    }));
     return true;
   }
+
+  bool startEcho() {
+    fromTunThread = std::unique_ptr<std::thread>(new std::thread([this](){
+      while(running) {
+        // nothing to do!!
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+    }));
+    toTunThread = std::unique_ptr<std::thread>(new std::thread([this]() {
+      while(running) {
+        toTun.pop([this](Packet *inPkt) {
+          auto ret = fromTun.push([this, inPkt](Packet *outPkt) {
+            memcpy(outPkt->buf, inPkt->buf, inPkt->size);
+            return inPkt->size;
+          });
+          return ret ? 1 : -1;
+        });
+      }
+    }));
+    return true;
+  }
+
+
+public:
+  TunDevice(const IfAddrs &ifAddrs, size_t mtu, size_t qSize) :
+    ifAddrs(ifAddrs),
+    fromTun(mtu, qSize, 500),
+    toTun(mtu, qSize, 500),
+    running(false),
+    tunDevName("") {
+  }
+
+  PacketQueue &getToTun() {
+    return toTun;
+  }
+  PacketQueue &getFromTun() {
+    return fromTun;
+  }
+
+  bool start() {
+    if (running) {
+      LOG(ERROR) << "could not start a running tun device";
+      return false;
+    }
+    running = true; // restartable
+    if (ifAddrs.isEcho()) {
+        return startEcho();
+    }
+    return startOnTun();
+  }
+
   void stop() {
       running = false;
   }
-  bool join() {
+  void join() {
     fromTunThread->join();
-    tunTunThread->join();
+    toTunThread->join();
   }
 
 };

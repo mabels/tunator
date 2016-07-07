@@ -17,3 +17,6 @@ add_test(packet_queue_test packet_queue_test)
 
 add_executable(if_addrs_test if_addrs_test.cpp)
 add_test(if_addrs_test if_addrs_test)
+
+add_executable(tun_device_test tun_device_test.cpp)
+add_test(tun_device_test tun_device_test)
