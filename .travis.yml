@@ -7,7 +7,7 @@ compiler:
 
 before_install:
     - sudo apt-get -qq update
-    - sudo apt-get install -y boost-latest cmake
+    - sudo apt-get install -y libboost-all-dev cmake
 
 script:
     - (cd test && cmake . && make)
