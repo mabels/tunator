@@ -15,4 +15,4 @@ script:
     - (cd test && build/packet_queue_test)
     - (cd test && build/packet_statistic_test)
     - (cd test && build/if_addrs_test)
-    - (cd test && build/tun_devie_test)
+    - (cd test && build/tun_device_test)
