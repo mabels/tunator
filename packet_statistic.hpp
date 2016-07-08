@@ -1,6 +1,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <sstream>
 
 #include <stdio.h>
 #include <string.h>
@@ -65,5 +66,22 @@ public:
     total.pushFailed += ret.current.pushFailed;
     ret.total = total;
     return ret;
+  }
+
+  std::string asString() const {
+      std::stringstream s2;
+      s2 << "allocFailed total=" << total.allocFailed << ":current=" << current.allocFailed << std::endl;
+      s2 << "allocOk total=" << total.allocOk << ":current=" << current.allocOk << std::endl;
+      s2 << "pushActionFailed total=" << total.pushActionFailed << ":current=" << current.pushActionFailed << std::endl;
+      s2 << "popActionFailed total=" << total.popActionFailed << ":current=" << current.popActionFailed << std::endl;
+      s2 << "pushPacketSize total=" << total.pushPacketSize << ":current=" << current.pushPacketSize << std::endl;
+      s2 << "pushTimeout total=" << total.pushTimeout << ":current=" << current.pushTimeout << std::endl;
+      s2 << "popTimeout total=" << total.popTimeout << ":current=" << current.popTimeout << std::endl;
+      s2 << "popPacketSize total=" << total.popPacketSize << ":current=" << current.popPacketSize << std::endl;
+      s2 << "pushOk total=" << total.pushOk << ":current=" << current.pushOk << std::endl;
+      s2 << "popOk total=" << total.popOk << ":current=" << current.popOk << std::endl;
+      s2 << "popEmpty total=" << total.popEmpty << ":current=" << current.popEmpty << std::endl;
+      s2 << "pushFailed total=" << total.pushFailed << ":current=" << current.pushFailed << std::endl;
+      return s2.str();
   }
 };

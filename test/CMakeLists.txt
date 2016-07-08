@@ -6,6 +6,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -g")
 find_package(Boost 1.54.0 COMPONENTS system regex coroutine context thread REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
+find_package(Threads REQUIRED)
+
 add_executable(packet_statistic_test packet_statistic_test.cpp)
 add_test(packet_statistic_test packet_statistic_test)
 
@@ -19,4 +21,5 @@ add_executable(if_addrs_test if_addrs_test.cpp)
 add_test(if_addrs_test if_addrs_test)
 
 add_executable(tun_device_test tun_device_test.cpp)
+target_link_libraries(tun_device_test ${Boost_LIBRARIES})
 add_test(tun_device_test tun_device_test)
