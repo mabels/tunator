@@ -30,6 +30,7 @@ int tun_alloc(std::string &dev) {
 }
 #else
 #include <sys/ioctl.h>
+#include <net/if.h>
 #include <linux/if_tun.h>
 int tun_alloc(std::string &dev) {
   int fd = open("/dev/net/tun", O_RDWR);
