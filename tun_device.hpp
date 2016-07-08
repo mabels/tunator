@@ -41,18 +41,19 @@ int tun_alloc(std::string &dev) {
     struct ifreq ifr;
     memset(&ifr, 0, sizeof(ifr));
     ifr.ifr_flags = IFF_TUN;
-    char buf[128];
-    sprintf(buf, "/dev/tun%d", i);
-    printf("try:%s\n", buf);
-    strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+    char buf[IFNAMSIZ];
+    snprintf(buf, sizeof(buf), "tun%d", i);
+    LOG(INFO) << "try:" <<  buf;
+    strncpy(ifr.ifr_name, buf, IFNAMSIZ);
     int err = ioctl(fd, TUNSETIFF, &ifr);
     if (err >= 0) {
-      dev =  ifr.ifr_name
+      dev =  ifr.ifr_name;
       return fd;
     }
   }
   close(fd);
   return -1;
+}
 #endif
 
 
