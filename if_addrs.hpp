@@ -4,6 +4,9 @@
 #include <sstream>
 #include <vector>
 
+#define ELPP_THREAD_SAFE
+#include "easylogging++.h"
+
 class IfAddrs {
 public:
   class RouteVia {
@@ -17,7 +20,13 @@ private:
   std::vector<std::string> addrs;
   std::vector<RouteVia> routes;
 public:
+  IfAddrs() : addrs(), routes() {
+    // LOG(INFO) << addrs.size() << ":" << addrs.empty();
+    // LOG(INFO) << asCommands("isEcho");
+  }
   bool isEcho() const {
+    // LOG(INFO) << addrs.size() << ":" << addrs.empty();
+    // LOG(INFO) << asCommands("isEcho");
     return addrs.empty();
   }
   void addAddr(const std::string &addr) {
@@ -34,7 +43,7 @@ public:
     for (auto &route : routes) {
         s2 << "ip route add " << route.dest << " via " << route.via << " dev "<< dev << std::endl;
     }
-    s2 << "ip link set dev << " << dev << " up" << std::endl;
+    s2 << "ip link set dev " << dev << " up" << std::endl;
     return s2.str();
   }
 };

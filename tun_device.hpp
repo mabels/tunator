@@ -70,6 +70,7 @@ private:
 
 
   bool startOnTun() {
+    LOG(INFO) << "running tun mode";
     const int fd = tun_alloc(tunDevName);
     if (fd < 0) {
       LOG(ERROR) << "tun_alloc failed with:" << errno;
@@ -94,6 +95,7 @@ private:
   }
 
   bool startEcho() {
+    LOG(INFO) << "running echo mode";
     fromTunThread = std::unique_ptr<std::thread>(new std::thread([this](){
       while(running) {
         // nothing to do!!
