@@ -1,9 +1,14 @@
 
+#ifndef __TunaTor__
+#define __TunaTor__
 
 #include <getopt.h>
 
+#include <string>
+
 #define ELPP_THREAD_SAFE
 #include "easylogging++.h"
+
 
 constexpr unsigned long long int
 HashStringToInt(const char *str, unsigned long long int hash = 0) {
@@ -12,14 +17,16 @@ HashStringToInt(const char *str, unsigned long long int hash = 0) {
 
 class TunaTor {
 private:
+  std::string address;
   short port;
   size_t threads;
   char *cert;
   char *key;
 
 public:
-  TunaTor() : port(4711), threads(4), cert(0), key(0) {}
+  TunaTor() : address("127.0.0.1"), port(4711), threads(4), cert(0), key(0) {}
 
+  const std::string &getAddress() const { return address; }
   short getPort() const { return port; }
   size_t getThreads() const { return threads; }
   const char *getCert() const { return cert; }
@@ -27,7 +34,7 @@ public:
   bool isSsl() const { return getCert() && getKey(); }
 
   void dump() {
-    LOG(INFO) << "port=" << port << " threads=" << threads
+    LOG(INFO) <<"address=" << address << " port=" << port << " threads=" << threads
               << " cert=" << (cert ? cert : "") << " key=" << (key ? key : "");
   }
 
@@ -37,6 +44,7 @@ public:
       // int this_option_optind = optind ? optind : 1;
       int option_index = 0;
       static const struct option long_options[] = {
+          {"address", required_argument, 0, 0},
           {"port", required_argument, 0, 0},
           {"threads", required_argument, 0, 0},
           {"cert", required_argument, 0, 0},
@@ -51,6 +59,9 @@ public:
         continue;
       }
       switch (HashStringToInt(long_options[option_index].name)) {
+      case HashStringToInt("address"):
+        ret.address = optarg;
+        break;
       case HashStringToInt("port"):
         ret.port = std::stoi(optarg);
         break;
@@ -73,4 +84,9 @@ public:
     }
     return ret;
   }
+
+  void start() const;
+
 };
+
+#endif

@@ -1,14 +1,17 @@
 
-#include "tunator.hpp"
+#ifndef __TunaServer__
+#define __TunaServer__
 
+#include "tunator.hpp"
+#include "tun_device.hpp"
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
-
-
 #include <server_ws.hpp>
 #include <server_wss.hpp>
+
+class TunaTor;
 
 template <class socketType> class TunaServer {
   const TunaTor &tunaTor;
@@ -17,8 +20,10 @@ template <class socketType> class TunaServer {
   std::map<std::string, TunDevice> ip;
 
 public:
-  TunaServer(TunaTor &tunaTor, WsServer *wsServer)
+  TunaServer(const TunaTor &tunaTor, WsServer *wsServer)
       : tunaTor(tunaTor), wsServer(std::unique_ptr<WsServer>(wsServer)) {}
+
+  WsServer &getWsServer() const { return *(wsServer.get()); }
 
   void start() {
     auto &init = wsServer->endpoint["^/init$"];
@@ -71,5 +76,9 @@ public:
                  << ". "
                  << "Error: " << ec << ", error message: " << ec.message();
     };
+    wsServer->start();
   }
+
 };
+
+#endif

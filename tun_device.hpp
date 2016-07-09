@@ -1,3 +1,5 @@
+#ifndef __TunDevice__
+#define __TunDevice__
 
 #include "packet_queue.hpp"
 #include "if_addrs.hpp"
@@ -154,3 +156,5 @@ public:
   }
 
 };
+
+#endif

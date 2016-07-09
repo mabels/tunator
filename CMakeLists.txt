@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 2.8)
 project (Tunator)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${Tunator_SOURCE_DIR}/build)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -g")
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
@@ -32,14 +33,10 @@ find_package(Threads REQUIRED)
 
 include_directories(.)
 
-add_executable(tunator tunator.cpp)
-target_link_libraries(tunator ${Boost_LIBRARIES})
-target_link_libraries(tunator ${OPENSSL_LIBRARIES})
-target_link_libraries(tunator ${CMAKE_THREAD_LIBS_INIT})
+add_executable(main main.cpp tunator.cpp)
+target_link_libraries(main ${Boost_LIBRARIES})
+target_link_libraries(main ${OPENSSL_LIBRARIES})
+target_link_libraries(main ${CMAKE_THREAD_LIBS_INIT})
 
-if(MSYS)
-    target_link_libraries(tunator ws2_32 wsock32)
-endif()
-
-#enable_testing()
-#add_subdirectory(test)
+enable_testing()
+add_subdirectory(test)
