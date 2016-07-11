@@ -10,8 +10,7 @@ before_install:
     - sudo apt-get install -y libboost-all-dev cmake
 
 script:
-    - (mkdir -p build && cd build && git clone https://github.com/eidheim/Simple-WebSocket-Server.git)
-    - (cd test && cmake . && make)
+    - cmake . && make
     - (cd test && build/packet_buffer_test)
     - (cd test && build/packet_queue_test)
     - (cd test && build/packet_statistic_test)

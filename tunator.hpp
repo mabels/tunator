@@ -16,24 +16,30 @@ HashStringToInt(const char *str, unsigned long long int hash = 0) {
 
 class TunaTor {
 private:
+  unsigned short mtu;
+  unsigned short qSize;
   std::string address;
-  short port;
+  unsigned short port;
   size_t threads;
   char *cert;
   char *key;
 
 public:
-  TunaTor() : address("127.0.0.1"), port(4711), threads(4), cert(0), key(0) {}
+  TunaTor() : mtu(1500), qSize(64), address("127.0.0.1"), port(4711), threads(4), cert(0), key(0) {}
+
+  unsigned short getMtu() const { return mtu; }
+  unsigned short getQsize() const { return qSize; }
+  unsigned short getPort() const { return port; }
 
   const std::string &getAddress() const { return address; }
-  short getPort() const { return port; }
   size_t getThreads() const { return threads; }
   const char *getCert() const { return cert; }
   const char *getKey() const { return key; }
   bool isSsl() const { return getCert() && getKey(); }
 
   void dump() {
-    LOG(INFO) <<"address=" << address << " port=" << port << " threads=" << threads
+    LOG(INFO) << "mtu=" << mtu << " qsize=" << qSize
+              << "address=" << address << " port=" << port << " threads=" << threads
               << " cert=" << (cert ? cert : "") << " key=" << (key ? key : "");
   }
 
@@ -43,6 +49,8 @@ public:
       // int this_option_optind = optind ? optind : 1;
       int option_index = 0;
       static const struct option long_options[] = {
+          {"mtu", required_argument, 0, 0},
+          {"qsize", required_argument, 0, 0},
           {"address", required_argument, 0, 0},
           {"port", required_argument, 0, 0},
           {"threads", required_argument, 0, 0},
@@ -58,6 +66,12 @@ public:
         continue;
       }
       switch (HashStringToInt(long_options[option_index].name)) {
+      case HashStringToInt("mtu"):
+        ret.mtu = std::stoi(optarg);
+        break;
+      case HashStringToInt("qsize"):
+        ret.qSize = std::stoi(optarg);
+        break;
       case HashStringToInt("address"):
         ret.address = optarg;
         break;

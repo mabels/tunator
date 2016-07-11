@@ -3,6 +3,9 @@
 #include <iostream>
 #include <map>
 
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
 using std::cerr;
 using std::endl;
 
@@ -94,5 +97,38 @@ int main() {
     cerr << ref.length() << "[" << ref << "]" << endl;
     return 1;
   }
+  std::stringstream s2;
+  boost::property_tree::write_json(s2, ia.asPtree(), false);
+  auto first = s2.str();
+  boost::property_tree::ptree pt;
+  boost::property_tree::read_json(s2, pt);
+  IfAddrs second;
+  IfAddrs::fromPtree(pt, second);
+  std::stringstream s3;
+  boost::property_tree::write_json(s3, second.asPtree(), false);
+  auto sSecond = s3.str();
+  if (first != sSecond) {
+    cerr << first << "!=" << sSecond;
+  }
+
+  {
+    std::stringstream sEmpty;
+    sEmpty << "{\"ips\":[],\"routes\":[]}";
+    boost::property_tree::read_json(sEmpty, pt);
+    sEmpty.str("");
+    boost::property_tree::write_json(sEmpty, pt, false);
+    cerr << "Empty=" << sEmpty.str();
+  }
+
+  IfAddrs emptyIf;
+  std::stringstream sEmpty;
+  boost::property_tree::write_json(sEmpty, emptyIf.asPtree(), false);
+  cerr << sEmpty.str();
+  boost::property_tree::read_json(sEmpty, pt);
+  IfAddrs::fromPtree(pt, second);
+  std::stringstream s4;
+  boost::property_tree::write_json(s4, second.asPtree(), false);
+  cerr << sEmpty.str() << ":" << s4.str();
+
   return 0;
 }

@@ -30,7 +30,10 @@
 
 **/CMakeFiles
 CMakeCache.txt
+CTestTestfile.cmake
 cmake_install.cmake
 **/logs
 **/Makefile
 **/build
+**/3rdparty
+**/*-prefix

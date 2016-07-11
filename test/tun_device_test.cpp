@@ -19,8 +19,7 @@ struct S_pkt {
 
 INITIALIZE_EASYLOGGINGPP
 int main() {
-  IfAddrs ifAddrs;
-  TunDevice tun(ifAddrs, 1500, 100);
+  TunDevice tun(IfAddrs(), 1500, 100);
 
   for (int i = 0; i < 3; ++i) {
     std::thread t([&tun]() {

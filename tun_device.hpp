@@ -61,7 +61,7 @@ int tun_alloc(std::string &dev) {
 
 class TunDevice {
 private:
-  const IfAddrs &ifAddrs;
+  const IfAddrs ifAddrs;
   PacketQueue fromTun;
   PacketQueue toTun;
   bool running;
@@ -69,7 +69,7 @@ private:
   std::string tunDevName;
   std::unique_ptr<std::thread> fromTunThread;
   std::unique_ptr<std::thread> toTunThread;
-
+  std::unique_ptr<std::thread> recvThread;
 
   bool startOnTun() {
     LOG(INFO) << "running tun mode";
@@ -98,6 +98,7 @@ private:
 
   bool startEcho() {
     LOG(INFO) << "running echo mode";
+    tunDevName = "echo";
     fromTunThread = std::unique_ptr<std::thread>(new std::thread([this](){
       while(running) {
         // nothing to do!!
@@ -128,11 +129,28 @@ public:
     tunDevName("") {
   }
 
+  boost::property_tree::ptree asPtree() const {
+    boost::property_tree::ptree pt;
+    pt.put("running", running);
+    pt.put("tunDevName", tunDevName);
+    return pt;
+  }
+  bool getRunning() const {
+    return running;
+  }
+  
+  const std::string& getTunDevName() const {
+    return tunDevName;
+  }
   PacketQueue &getToTun() {
     return toTun;
   }
   PacketQueue &getFromTun() {
     return fromTun;
+  }
+
+  void setRecvThread(std::thread *thread) {
+    recvThread = std::unique_ptr<std::thread>(thread);
   }
 
   bool start() {

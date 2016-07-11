@@ -2,8 +2,11 @@
 #ifndef __TunaServer__
 #define __TunaServer__
 
-#include "tunator.hpp"
 #include "tun_device.hpp"
+#include "tunator.hpp"
+
+#include <map>
+#include <memory>
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -17,7 +20,8 @@ template <class socketType> class TunaServer {
   const TunaTor &tunaTor;
   typedef SimpleWeb::SocketServer<socketType> WsServer;
   std::unique_ptr<WsServer> wsServer;
-  std::map<std::string, TunDevice> ip;
+  std::map<std::shared_ptr<typename WsServer::Connection>, std::unique_ptr<TunDevice> >
+      tunDevices;
 
 public:
   TunaServer(const TunaTor &tunaTor, WsServer *wsServer)
@@ -31,35 +35,60 @@ public:
         std::shared_ptr<typename WsServer::Connection> connection,
         std::shared_ptr<typename WsServer::Message> message) {
       auto message_str = message->string();
-      boost::property_tree::ptree pt;
-      std::stringstream s2;
-      s2 << message_str;
       LOG(INFO) << (size_t)connection.get() << ":" << message_str;
       // init-message
       //   -> [ip]
       //   -> routing[{dst,gw,dev}]
       //   <- tunDev
+      boost::property_tree::ptree pt;
       try {
-        boost::property_tree::read_json(s2, pt);
-        // Create TunDevice
-        auto send_stream = std::make_shared<typename WsServer::SendStream>();
-        *send_stream << message_str;
-        // server.send is an asynchronous function
-        wsServer->send(connection, send_stream, [](const boost::system::
-                                                       error_code &ec) {
-          if (ec) {
-            std::cout << "Server: Error sending message. " <<
-                // See
-                // http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference.html,
-                // Error Codes for error code meanings
-                "Error: " << ec << ", error message: " << ec.message()
-                      << std::endl;
-          }
-        });
-
-      } catch (boost::property_tree::json_parser::json_parser_error &je) {
-        LOG(ERROR) << je.message();
+        boost::property_tree::read_json(message_str, pt);
+      } catch (boost::property_tree::json_parser::json_parser_error &ex) {
+        LOG(ERROR) << "can not read_json:" << message_str << ":" << ex.message();
+        return;
       }
+
+      IfAddrs ifAddrs;
+      if (!IfAddrs::fromPtree(pt, ifAddrs)) {
+        LOG(ERROR) << "can't deserialize:" << message_str;
+        return;
+      }
+      TunDevice *tun =
+          new TunDevice(ifAddrs, tunaTor.getMtu(), tunaTor.getQsize());
+      if (!tun->start()) {
+        LOG(ERROR) << "can't start tun device";
+        return;
+      }
+      tun->setRecvThread(new std::thread([tun, &connection, this]() {
+        do {
+          tun->getFromTun().pop([&connection, this](Packet *pkt) {
+            auto send_stream =
+                std::make_shared<typename WsServer::SendStream>();
+            send_stream->write((const char*)pkt->buf, pkt->size);
+            wsServer->send(connection, send_stream,
+                           [](const boost::system::error_code &ec) {
+                             LOG(ERROR)
+                                 << "Server: Error sending message:" << ec
+                                 << ", error message: " << ec.message();
+                             return 0;
+                           });
+            return 1;
+          });
+        } while (tun->getRunning());
+      }));
+
+      tunDevices.insert(std::pair<std::shared_ptr<typename WsServer::Connection>,
+        std::unique_ptr<TunDevice>>(connection, std::unique_ptr<TunDevice>(tun)));
+      // Create TunDevice
+      auto send_stream = std::make_shared<typename WsServer::SendStream>();
+      boost::property_tree::write_json(*send_stream, tun->asPtree(), false);
+      wsServer->send(connection, send_stream,
+                     [](const boost::system::error_code &ec) {
+                       if (ec) {
+                         LOG(ERROR) << "Server: Error sending message:" << ec
+                                    << ", error message: " << ec.message();
+                       }
+                     });
     };
     init.onopen = [](
         std::shared_ptr<typename WsServer::Connection> connection) {
@@ -78,7 +107,6 @@ public:
     };
     wsServer->start();
   }
-
 };
 
 #endif

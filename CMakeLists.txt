@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.8.4)
 project (Tunator)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${Tunator_SOURCE_DIR}/build)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -g")
@@ -23,17 +23,22 @@ if(APPLE)
   set(OPENSSL_ROOT_DIR "/usr/local/opt/openssl")
 endif()
 
-set(SIMPLEWEB_INCLUDE_DIR "/Users/menabe/Software/Simple-WebSocket-Server")
+include(CMakeLists-Simple-WebSocket.txt)
+include(CMakeLists-jsoncpp.txt)
+
+#set(SIMPLEWEB_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/3rdparty/Simple-WebSocket-Server")
 #TODO: add requirement for version 1.0.1g (can it be done in one line?)
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
-include_directories(${SIMPLEWEB_INCLUDE_DIR})
+#include_directories(${SIMPLEWEB_INCLUDE_DIR})
 
 find_package(Threads REQUIRED)
 
 include_directories(.)
 
 add_executable(main main.cpp tunator.cpp)
+add_dependencies(main SimpleWebSocketServer)
+add_dependencies(main jsoncpp)
 target_link_libraries(main ${Boost_LIBRARIES})
 target_link_libraries(main ${OPENSSL_LIBRARIES})
 target_link_libraries(main ${CMAKE_THREAD_LIBS_INIT})
