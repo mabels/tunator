@@ -9,7 +9,6 @@
 #define ELPP_THREAD_SAFE
 #include "easylogging++.h"
 
-
 constexpr unsigned long long int
 HashStringToInt(const char *str, unsigned long long int hash = 0) {
   return (*str == 0) ? hash : 101 * HashStringToInt(str + 1) + *str;
