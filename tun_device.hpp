@@ -70,6 +70,7 @@ private:
   std::unique_ptr<std::thread> fromTunThread;
   std::unique_ptr<std::thread> toTunThread;
   std::unique_ptr<std::thread> recvThread;
+  std::unique_ptr<std::thread> statThread;
 
   bool startOnTun() {
     LOG(INFO) << "running tun mode";
@@ -129,16 +130,14 @@ public:
     tunDevName("") {
   }
 
-  boost::property_tree::ptree asPtree() const {
-    boost::property_tree::ptree pt;
-    pt.put("running", running);
-    pt.put("tunDevName", tunDevName);
-    return pt;
+  void asJson(Json::Value &val) const {
+    val["running"] = running;
+    val["tunDevName"] = tunDevName;
   }
   bool getRunning() const {
     return running;
   }
-  
+
   const std::string& getTunDevName() const {
     return tunDevName;
   }
@@ -151,6 +150,9 @@ public:
 
   void setRecvThread(std::thread *thread) {
     recvThread = std::unique_ptr<std::thread>(thread);
+  }
+  void setStatThread(std::thread *thread) {
+    statThread = std::unique_ptr<std::thread>(thread);
   }
 
   bool start() {

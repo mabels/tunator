@@ -20,12 +20,14 @@ add_test(packet_queue_test packet_queue_test)
 
 add_executable(if_addrs_test if_addrs_test.cpp)
 add_test(if_addrs_test if_addrs_test)
+target_link_libraries(if_addrs_test ${jsoncpp_LIBRARIES})
 
 add_executable(tun_device_test tun_device_test.cpp)
 target_link_libraries(tun_device_test ${Boost_LIBRARIES})
 add_test(tun_device_test tun_device_test)
 
 add_executable(tuna_server_test tuna_server_test.cpp ../tunator.cpp)
+target_link_libraries(tuna_server_test ${jsoncpp_LIBRARIES})
 target_link_libraries(tuna_server_test ${Boost_LIBRARIES})
 target_link_libraries(tuna_server_test ${OPENSSL_LIBRARIES})
 add_test(tuna_server_test tuna_server_test)

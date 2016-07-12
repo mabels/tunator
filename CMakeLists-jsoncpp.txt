@@ -8,15 +8,22 @@ ExternalProject_Add(
   UPDATE_COMMAND ""
 
   SOURCE_DIR "${CMAKE_SOURCE_DIR}/3rdparty/jsoncpp"
-  CMAKE_ARGS -DCMAKE_BUILD_TYPE=debug -DBUILD_STATIC_LIBS=ON -DBUILD_SHARED_LIBS=OFF -DARCHIVE_INSTALL_DIR=. -G "Unix Makefiles" ../..
+  CMAKE_ARGS -DCMAKE_BUILD_TYPE=debug -DBUILD_STATIC_LIBS=ON -DBUILD_SHARED_LIBS=OFF -DARCHIVE_INSTALL_DIR=<INSTALL_DIR> -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> ../..
 
-
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ""
+  #BUILD_COMMAND ""
+  #INSTALL_COMMAND ""
   TEST_COMMAND ""
 )
 
 
+ExternalProject_Get_Property(jsoncpp install_dir)
+include_directories(${install_dir}/include)
+
 
 set(jsoncpp_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/3rdparty/jsoncpp/include")
+set(jsoncpp_LIBRARIES "${install_dir}/${CMAKE_STATIC_LIBRARY_PREFIX}jsoncpp${CMAKE_STATIC_LIBRARY_SUFFIX}")
+#set(jsoncpp_LIBRARY_DIR "${install_dir}")
+#set(jsoncpp_LIBRARIES "${CMAKE_SOURCE_DIR}/3rdparty/jsoncpp/include")
+#target_link_libraries(main ${install_dir})
+#./jsoncpp-prefix/src/jsoncpp-build/src/lib_json/libjsoncpp.a
 include_directories(${jsoncpp_INCLUDE_DIRS})

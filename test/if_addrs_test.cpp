@@ -97,38 +97,45 @@ int main() {
     cerr << ref.length() << "[" << ref << "]" << endl;
     return 1;
   }
-  std::stringstream s2;
-  boost::property_tree::write_json(s2, ia.asPtree(), false);
-  auto first = s2.str();
-  boost::property_tree::ptree pt;
-  boost::property_tree::read_json(s2, pt);
-  IfAddrs second;
-  IfAddrs::fromPtree(pt, second);
-  std::stringstream s3;
-  boost::property_tree::write_json(s3, second.asPtree(), false);
-  auto sSecond = s3.str();
-  if (first != sSecond) {
-    cerr << first << "!=" << sSecond;
+  {
+    Json::StyledWriter styledWriter;
+    Json::Value iaFrom;
+    ia.asJson(iaFrom);
+    auto from = styledWriter.write(iaFrom);
+    Json::Reader reader;
+    std::stringstream fromStream;
+    fromStream << from;
+    Json::Value iaTo;
+    reader.parse(fromStream, iaTo, false);
+    IfAddrs my;
+    IfAddrs::fromJson(iaTo, my);
+    Json::Value out;
+    my.asJson(out);
+    auto to = styledWriter.write(out);
+    if (from != to) {
+       cerr << from << "!=" << to;
+    }
   }
 
   {
-    std::stringstream sEmpty;
-    sEmpty << "{\"ips\":[],\"routes\":[]}";
-    boost::property_tree::read_json(sEmpty, pt);
-    sEmpty.str("");
-    boost::property_tree::write_json(sEmpty, pt, false);
-    cerr << "Empty=" << sEmpty.str();
+    IfAddrs ia;
+    Json::Value iaFrom;
+    ia.asJson(iaFrom);
+    Json::StyledWriter styledWriter;
+    auto from = styledWriter.write(iaFrom);
+    Json::Reader reader;
+    std::stringstream fromStream;
+    fromStream << from;
+    Json::Value iaTo;
+    reader.parse(fromStream, iaTo, false);
+    IfAddrs my;
+    IfAddrs::fromJson(iaTo, my);
+    Json::Value out;
+    my.asJson(out);
+    auto to = styledWriter.write(out);
+    if (from != to) {
+       cerr << from << "!=" << to;
+    }
   }
-
-  IfAddrs emptyIf;
-  std::stringstream sEmpty;
-  boost::property_tree::write_json(sEmpty, emptyIf.asPtree(), false);
-  cerr << sEmpty.str();
-  boost::property_tree::read_json(sEmpty, pt);
-  IfAddrs::fromPtree(pt, second);
-  std::stringstream s4;
-  boost::property_tree::write_json(s4, second.asPtree(), false);
-  cerr << sEmpty.str() << ":" << s4.str();
-
   return 0;
 }

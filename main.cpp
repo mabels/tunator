@@ -1,7 +1,5 @@
 
 
-#define ELPP_THREAD_SAFE
-#include "easylogging++.h"
 
 #include "tunator.hpp"
 

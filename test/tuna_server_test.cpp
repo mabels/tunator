@@ -2,6 +2,7 @@
 #include <client_ws.hpp>
 
 #include <tunator.hpp>
+#include <message.hpp>
 #include <if_addrs.hpp>
 
 #include <iostream>
@@ -33,9 +34,14 @@ int main(int argc, char *argv[]) {
     client.send_close(1000);
   };
   client.onopen = [&client]() {
-    IfAddrs ifAddrs;
+    Message<IfAddrs> ifAddrs("init");
     auto send_stream = std::make_shared<WsClient::SendStream>();
-    boost::property_tree::write_json(*send_stream, ifAddrs.asPtree(), false);
+    Json::Value jsVal;
+    ifAddrs.asJson(jsVal);
+    Json::StyledWriter styledWriter;
+    auto from = styledWriter.write(jsVal);
+    *send_stream << "JSON";
+    *send_stream << from;
     client.send(send_stream);
   };
   client.onclose = [](int status, const string & /*reason*/) {
