@@ -7,12 +7,19 @@
 #include <string>
 
 #define ELPP_THREAD_SAFE
-#include "easylogging++.h"
+#include <easylogging++.h>
+
+#include <server_ws.hpp>
+#include <server_wss.hpp>
 
 
+template<typename T> class TunaServer;
 
 class TunaTor {
 private:
+  TunaServer<SimpleWeb::WSS> *tunaServerWSS;
+  TunaServer<SimpleWeb::WS> *tunaServerWS;
+
   unsigned short mtu;
   unsigned short qSize;
   std::string address;
@@ -20,6 +27,7 @@ private:
   size_t threads;
   char *cert;
   char *key;
+  size_t statFrequence;
 
   static constexpr unsigned long long int
   HashStringToInt(const char *str, unsigned long long int hash = 0) {
@@ -27,7 +35,11 @@ private:
   }
 
 public:
-  TunaTor() : mtu(1500), qSize(64), address("127.0.0.1"), port(4711), threads(4), cert(0), key(0) {}
+  TunaTor() : tunaServerWSS(0), tunaServerWS(0),
+    mtu(1500), qSize(64), address("127.0.0.1"), port(4711),
+    threads(4), cert(0), key(0), statFrequence(1000) {}
+
+  ~TunaTor();
 
   unsigned short getMtu() const { return mtu; }
   unsigned short getQsize() const { return qSize; }
@@ -37,12 +49,14 @@ public:
   size_t getThreads() const { return threads; }
   const char *getCert() const { return cert; }
   const char *getKey() const { return key; }
+  size_t getStatFrequence() const { return statFrequence; }
   bool isSsl() const { return getCert() && getKey(); }
 
   void dump() {
     LOG(INFO) << "mtu=" << mtu << " qsize=" << qSize
               << "address=" << address << " port=" << port << " threads=" << threads
-              << " cert=" << (cert ? cert : "") << " key=" << (key ? key : "");
+              << " cert=" << (cert ? cert : "") << " key=" << (key ? key : "")
+              << " statFrequence=" << statFrequence;
   }
 
   static TunaTor args(int argc, char **argv) {
@@ -58,6 +72,7 @@ public:
           {"threads", required_argument, 0, 0},
           {"cert", required_argument, 0, 0},
           {"key", required_argument, 0, 0},
+          {"statFrequence", required_argument, 0, 0},
           {0, 0, 0, 0}};
       auto c = getopt_long(argc, argv, "", long_options, &option_index);
       if (c == -1) {
@@ -83,6 +98,9 @@ public:
       case HashStringToInt("threads"):
         ret.threads = std::stoi(optarg);
         break;
+      case HashStringToInt("statFrequence"):
+        ret.statFrequence = std::stoi(optarg);
+        break;
       case HashStringToInt("cert"):
         ret.cert = optarg;
         break;
@@ -100,7 +118,8 @@ public:
     return ret;
   }
 
-  void start() const;
+  void start();
+  void stop();
 
 };
 

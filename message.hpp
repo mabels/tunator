@@ -1,3 +1,5 @@
+#ifndef __Message__
+#define __Message__
 
 #include <iostream>
 #include <sstream>
@@ -8,18 +10,23 @@
 #include <arpa/inet.h>
 
 #define ELPP_THREAD_SAFE
-#include "easylogging++.h"
+#include <easylogging++.h>
 
 #include <json/json.h>
 
+
 template<typename T>
-class Message {
+class MessageRef {
 private:
   std::string action;
-  T data;
+  T &data;
 
 public:
-  Message(std::string const &action) : action(action) {
+  MessageRef(std::string const &action, T& data) : action(action), data(data) {
+  }
+
+  const std::string& getAction() const {
+    return action;
   }
 
   T& getData() {
@@ -33,9 +40,19 @@ public:
     val["data"] = jsData;
   }
 
-  static bool fromJson(Json::Value &val, Message<T> &msg) {
-    msg.action = val["action"];
+  static bool fromJson(Json::Value &val, MessageRef<T> &msg) {
+    msg.action = val.get("action", "").asString();
     T::fromJson(val["data"], msg.data);
     return true;
   }
 };
+
+template<typename T>
+class Message : public MessageRef<T> {
+  private:
+    T realData;
+  public:
+    Message(std::string const &action) : MessageRef<T>(action, realData) {}
+};
+
+#endif

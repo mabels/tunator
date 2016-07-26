@@ -6,9 +6,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <json/json.h>
+
 using std::chrono::system_clock;
 class PacketStatistic {
-  struct S_Data {
+  class Data {
+  public:
     size_t allocFailed;
     size_t allocOk;
     size_t pushActionFailed;
@@ -21,14 +24,31 @@ class PacketStatistic {
     size_t popOk;
     size_t popEmpty;
     size_t pushFailed;
+    Data() : allocFailed(0), allocOk(0), pushActionFailed(0),
+      popActionFailed(0), pushTimeout(0), popTimeout(0),
+      pushPacketSize(0), popPacketSize(0), pushOk(0), popOk(0),
+      popEmpty(0), pushFailed(0) {}
+
+    void asJson(Json::Value &val) const {
+      val["allocFailed"] = Json::Value((Json::UInt64)allocFailed);
+      val["allocOk"] = Json::Value((Json::UInt64)allocOk);
+      val["pushActionFailed"] = Json::Value((Json::UInt64)pushActionFailed);
+      val["popActionFailed"] = Json::Value((Json::UInt64)popActionFailed);
+      val["pushTimeout"] = Json::Value((Json::UInt64)pushTimeout);
+      val["popTimeout"] = Json::Value((Json::UInt64)popTimeout);
+      val["pushPacketSize"] = Json::Value((Json::UInt64)pushPacketSize);
+      val["popPacketSize"] = Json::Value((Json::UInt64)popPacketSize);
+      val["pushOk"] = Json::Value((Json::UInt64)pushOk);
+      val["popOk"] = Json::Value((Json::UInt64)popOk);
+      val["popEmpty"] = Json::Value((Json::UInt64)popEmpty);
+      val["pushFailed"] = Json::Value((Json::UInt64)pushFailed);
+    }
   };
   system_clock::time_point started;
-  struct S_Data current;
-  struct S_Data total;
+  Data current;
+  Data total;
 public:
   PacketStatistic() : started(system_clock::now()) {
-    memset(&current, 0, sizeof(S_Data));
-    memset(&total, 0, sizeof(S_Data));
   }
   void incAllocFailed() { ++current.allocFailed; }
   void incAllocOk() { ++current.allocOk; }
@@ -43,8 +63,8 @@ public:
   void incPopEmpty() { ++current.popEmpty; }
   void incPushFailed() { ++current.pushFailed; }
 
-  const struct S_Data& getCurrent() const { return current; }
-  const struct S_Data& getTotal() const { return total; }
+  const Data& getCurrent() const { return current; }
+  const Data& getTotal() const { return total; }
   system_clock::time_point getStarted() const { return started; }
 
   PacketStatistic collect() {
@@ -66,6 +86,13 @@ public:
     total.pushFailed += ret.current.pushFailed;
     ret.total = total;
     return ret;
+  }
+
+  void asJson(Json::Value &val) const {
+      val["total"] = Json::Value();
+      total.asJson(val["total"]);
+      val["current"] = Json::Value();
+      current.asJson(val["current"]);
   }
 
   std::string asString() const {

@@ -26,6 +26,10 @@ public:
     blockWait(blockWait) {
   }
 
+  const PacketBuffer& getPacketBuffer() const {
+    return pb;
+  }
+
   PacketStatistic getStatistic() {
     return ps.collect();
   }

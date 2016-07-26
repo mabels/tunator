@@ -1,3 +1,5 @@
+#ifndef __IfAddrs__
+#define __IfAddrs__
 
 #include <iostream>
 #include <sstream>
@@ -8,7 +10,7 @@
 #include <arpa/inet.h>
 
 #define ELPP_THREAD_SAFE
-#include "easylogging++.h"
+#include <easylogging++.h>
 
 #include <json/json.h>
 
@@ -37,6 +39,7 @@ public:
   };
 
 private:
+  size_t mtu;
   std::vector<std::string> addrs;
   std::vector<RouteVia> routes;
 
@@ -88,12 +91,19 @@ public:
     return false;
   }
 
-  IfAddrs() : addrs(), routes() {
+  IfAddrs() : mtu(1360), addrs(), routes() {
     // LOG(INFO) << addrs.size() << ":" << addrs.empty();
     // LOG(INFO) << asCommands("isEcho");
   }
   const std::vector<std::string> &getAddrs() const { return addrs; }
   const std::vector<RouteVia> &getRoutes() const { return routes; }
+
+  void setMtu(size_t _mtu) {
+     mtu = _mtu;
+  }
+  size_t getMtu() const {
+    return mtu;
+  }
 
   bool isEcho() const {
     // LOG(INFO) << addrs.size() << ":" << addrs.empty();
@@ -123,11 +133,12 @@ public:
       s2 << "ip route add " << route.dest << " via " << route.via << " dev "
          << dev << std::endl;
     }
-    s2 << "ip link set dev " << dev << " up" << std::endl;
+    s2 << "ip link set dev " << dev << " mtu " << mtu << " up" << std::endl;
     return s2.str();
   }
 
   void asJson(Json::Value &val) const {
+    val["mtu"] = Json::Value((Json::UInt64)mtu);
     {
       Json::Value res(Json::arrayValue);
       for (auto &v : addrs) {
@@ -147,6 +158,7 @@ public:
   }
 
   static bool fromJson(Json::Value &val, IfAddrs &ifAddrs) {
+    ifAddrs.mtu = val.get("mtu", (Json::UInt64)ifAddrs.mtu).asInt();
       for (auto &v : val["ips"]) {
         if (!ifAddrs.addAddr(v.asString())) {
           LOG(ERROR) << "can not addAddr:" << v;
@@ -167,3 +179,5 @@ public:
     return true;
   }
 };
+
+#endif

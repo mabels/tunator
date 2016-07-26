@@ -25,6 +25,7 @@ endif()
 
 include(CMakeLists-Simple-WebSocket.txt)
 include(CMakeLists-jsoncpp.txt)
+include(CMakeLists-easyloggingpp.txt)
 
 #set(SIMPLEWEB_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/3rdparty/Simple-WebSocket-Server")
 #TODO: add requirement for version 1.0.1g (can it be done in one line?)
@@ -36,7 +37,7 @@ find_package(Threads REQUIRED)
 
 include_directories(.)
 
-add_executable(main main.cpp tunator.cpp)
+add_executable(main main.cpp tunator.cpp tun_device.cpp)
 add_dependencies(main SimpleWebSocketServer)
 add_dependencies(main jsoncpp)
 #target_link_libraries(main ${jsoncpp_LIBRARY_DIR})

@@ -9,59 +9,14 @@
 #include <thread>
 
 #define ELPP_THREAD_SAFE
-#include "easylogging++.h"
+#include <easylogging++.h>
 
-#ifdef __APPLE_CC__
-int tun_alloc(std::string &dev) {
-  int fd = 0;
-  for(int i = 0; i < 255; ++i) {
-    char buf[128];
-    sprintf(buf, "/dev/tun%d", i);
-    printf("try:%s\n", buf);
-    if( (fd = open(buf, O_RDWR)) > 0 ) {
-      char *slash = strrchr(buf, '/');
-      if (slash) {
-        dev = slash + 1;
-      } else {
-        dev = buf;
-      }
-      return fd;
-    }
-  }
-  return -1;
-}
-#else
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <linux/if_tun.h>
-int tun_alloc(std::string &dev) {
-  int fd = open("/dev/net/tun", O_RDWR);
-  if(fd < 0) {
-   return -1;
-  }
-  for (int i  = 0; i < 255; ++i) {
-    struct ifreq ifr;
-    memset(&ifr, 0, sizeof(ifr));
-    ifr.ifr_flags = IFF_TUN;
-    char buf[IFNAMSIZ];
-    snprintf(buf, sizeof(buf), "tun%d", i);
-    LOG(INFO) << "try:" <<  buf;
-    strncpy(ifr.ifr_name, buf, IFNAMSIZ);
-    int err = ioctl(fd, TUNSETIFF, &ifr);
-    if (err >= 0) {
-      dev =  ifr.ifr_name;
-      return fd;
-    }
-  }
-  close(fd);
-  return -1;
-}
-#endif
-
+extern int tun_alloc(std::string &dev);
 
 class TunDevice {
 private:
-  const IfAddrs ifAddrs;
+  size_t seq;
+  IfAddrs ifAddrs;
   PacketQueue fromTun;
   PacketQueue toTun;
   bool running;
@@ -122,18 +77,47 @@ private:
 
 
 public:
+  TunDevice() : seq(4711), fromTun(100, 5, 500), toTun(100, 5, 500),
+    running(false), tunDevName("defaultInit") {
+    LOG(INFO) << "TunDevice:DEF:" << this;
+  }
   TunDevice(const IfAddrs &ifAddrs, size_t mtu, size_t qSize) :
+    seq(0),
     ifAddrs(ifAddrs),
     fromTun(mtu, qSize, 500),
     toTun(mtu, qSize, 500),
     running(false),
     tunDevName("") {
+    LOG(INFO) << "TunDevice:REL:" << this;
+  }
+  ~TunDevice() {
+    LOG(INFO) << "~TunDevice:" << this;
   }
 
-  void asJson(Json::Value &val) const {
+  static void fromJson(Json::Value &json, TunDevice &tun) {
+    tun.seq = json.get("seq", (Json::UInt64)tun.seq).asUInt64();
+    tun.running = json.get("running", tun.running).asBool();
+    tun.tunDevName = json.get("tunDevName", tun.tunDevName).asString();
+    IfAddrs::fromJson(json["ifAddrs"], tun.ifAddrs);
+  }
+
+  void asJson(Json::Value &val) {
+    val["type"] = "TunDevice";
+    val["seq"] = Json::Value((Json::UInt64)++seq);
     val["running"] = running;
     val["tunDevName"] = tunDevName;
+    val["ifAddrs"] = Json::Value();
+    ifAddrs.asJson(val["ifAddrs"]);
+    val["fromTun"] = Json::Value();
+    fromTun.getStatistic().collect().asJson(val["fromTun"]);
+    val["toTun"] = Json::Value();
+    toTun.getStatistic().collect().asJson(val["toTun"]);
   }
+
+  size_t getSeq() const {
+    return seq;
+  }
+
   bool getRunning() const {
     return running;
   }
@@ -160,6 +144,14 @@ public:
       LOG(ERROR) << "could not start a running tun device";
       return false;
     }
+    if (ifAddrs.getMtu() > fromTun.getPacketBuffer().getMtu()) {
+      LOG(ERROR) << "ifAddrs Mtu to big for fromTun:" << ifAddrs.getMtu() << ":" << fromTun.getPacketBuffer().getMtu();
+      return false;
+    }
+    if (ifAddrs.getMtu() > toTun.getPacketBuffer().getMtu()) {
+      LOG(ERROR) << "ifAddrs Mtu to big for toTun:" << ifAddrs.getMtu() << ":" << toTun.getPacketBuffer().getMtu();
+      return false;
+    }
     running = true; // restartable
     if (ifAddrs.isEcho()) {
         return startEcho();
@@ -168,11 +160,25 @@ public:
   }
 
   void stop() {
-      running = false;
+    // LOG(INFO) << "stop-started:+:" << this;
+    running = false;
+    join();
+    // LOG(INFO) << "stop-started:-:" << this;
   }
   void join() {
+    // LOG(INFO) << "join-fromTunThread:" << this;
     fromTunThread->join();
+    // LOG(INFO) << "join-toTunThread:" << this;
     toTunThread->join();
+    if (recvThread.get()) {
+      // LOG(INFO) << "join-recvThread:" << this;
+      recvThread->join();
+    }
+    if (statThread.get()) {
+      // LOG(INFO) << "join-statThread:" << this;
+      statThread->join();
+    }
+    // LOG(INFO) << "join done:" << this;
   }
 
 };
