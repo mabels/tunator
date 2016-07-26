@@ -24,15 +24,14 @@ int main() {
   for (int i = 0; i < 3; ++i) {
     std::thread t([&tun]() {
       std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      tun.stop();
     });
 
     if (tun.start() != true) {
       cerr << "tun didn't started" << endl;
       return 1;
     }
-    tun.join();
     t.join();
+    tun.stop();
   }
 
   if (tun.start() != true) {
@@ -79,7 +78,6 @@ int main() {
   recvThread.join();
   sendThread.join();
   tun.stop();
-  tun.join();
   mutex.unlock();
   auto fromTunPs = tun.getFromTun().getStatistic();
   //cerr << fromTunPs.asString();

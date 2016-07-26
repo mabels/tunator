@@ -15,6 +15,7 @@ extern int tun_alloc(std::string &dev);
 
 class TunDevice {
 private:
+  bool started;
   size_t seq;
   IfAddrs ifAddrs;
   PacketQueue fromTun;
@@ -41,6 +42,7 @@ private:
             return read(tunFd, pkt->buf, pkt->max_size);
         });
       }
+      LOG(INFO) << "stopped tun mode";
     }));
     toTunThread = std::unique_ptr<std::thread>(new std::thread([this]() {
       while(running) {
@@ -56,10 +58,10 @@ private:
     LOG(INFO) << "running echo mode";
     tunDevName = "echo";
     fromTunThread = std::unique_ptr<std::thread>(new std::thread([this](){
-      while(running) {
-        // nothing to do!!
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      }
+      // while(running) {
+      //   // nothing to do!!
+      //   std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      // }
     }));
     toTunThread = std::unique_ptr<std::thread>(new std::thread([this]() {
       while(running) {
@@ -71,17 +73,18 @@ private:
           return ret ? 1 : -1;
         });
       }
+      LOG(INFO) << "stopped echo mode";
     }));
     return true;
   }
 
-
 public:
-  TunDevice() : seq(4711), fromTun(100, 5, 500), toTun(100, 5, 500),
-    running(false), tunDevName("defaultInit") {
-    LOG(INFO) << "TunDevice:DEF:" << this;
+  TunDevice() : started(false), seq(4711), fromTun(100, 5, 500),
+    toTun(100, 5, 500), running(false), tunDevName("defaultInit") {
+    //LOG(INFO) << "TunDevice:DEF:" << this;
   }
   TunDevice(const IfAddrs &ifAddrs, size_t mtu, size_t qSize) :
+    started(false),
     seq(0),
     ifAddrs(ifAddrs),
     fromTun(mtu, qSize, 500),
@@ -91,7 +94,9 @@ public:
     LOG(INFO) << "TunDevice:REL:" << this;
   }
   ~TunDevice() {
-    LOG(INFO) << "~TunDevice:" << this;
+    if (started) {
+      LOG(INFO) << "~TunDevice:" << this;
+    }
   }
 
   static void fromJson(Json::Value &json, TunDevice &tun) {
@@ -156,6 +161,7 @@ public:
     if (ifAddrs.isEcho()) {
         return startEcho();
     }
+    started = true;
     return startOnTun();
   }
 
@@ -166,10 +172,15 @@ public:
     // LOG(INFO) << "stop-started:-:" << this;
   }
   void join() {
-    // LOG(INFO) << "join-fromTunThread:" << this;
-    fromTunThread->join();
+    //LOG(INFO) << "join-fromTunThread:" << this;
+    if (fromTunThread.get()) {
+      //LOG(INFO) << fromTunThread->joinable();
+      fromTunThread->join();
+    }
     // LOG(INFO) << "join-toTunThread:" << this;
-    toTunThread->join();
+    if (toTunThread.get()) {
+      toTunThread->join();
+    }
     if (recvThread.get()) {
       // LOG(INFO) << "join-recvThread:" << this;
       recvThread->join();

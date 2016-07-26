@@ -61,9 +61,9 @@ template <class socketType> class TunaServer {
       tun->setStatThread(new std::thread([tun, connection, this]() {
         Json::StyledWriter styledWriter;
         while (tun->getRunning()) {
-          LOG(INFO) << "StatThread:sleep:" << this;
+          //LOG(INFO) << "StatThread:sleep:" << this;
           std::this_thread::sleep_for(std::chrono::milliseconds(tunaTor.getStatFrequence()));
-          LOG(INFO) << "StatThread:run:" << this;
+          //LOG(INFO) << "StatThread:run:" << this;
           if (!tun->getRunning()) {
               return;
           }
