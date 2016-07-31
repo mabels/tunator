@@ -22,7 +22,7 @@ public:
       packet.used = false;
       packet.idx = i;
       packet.size = 0;
-      packet.max_size = mtu;
+      packet.maxSize = mtu;
       packet.buf = &(buffer.get()[i*packetSize]);
     }
   }

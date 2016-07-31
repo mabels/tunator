@@ -1,8 +1,17 @@
 cmake_minimum_required(VERSION 2.8.7)
 project (TunatorTest)
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${TunatorTest_SOURCE_DIR}/build)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wunused-parameter -g")
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${TunatorTest_SOURCE_DIR}/${CMAKE_BUILD_TYPE})
+#SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${TunatorTest_SOURCE_DIR}/${CMAKE_SYSTEM_NAME})
 
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wunused-parameter -g")
+
+if (${CMAKE_COMPILER_IS_GNUCXX})
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -pg")
+endif()
+#set(CMAKE_SHARED_LINKER_FLAGS="-lprofiler -ltcmalloc")
+
+
+enable_testing()
 
 find_package(Boost 1.54.0 COMPONENTS system regex coroutine context thread REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})

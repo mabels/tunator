@@ -46,7 +46,11 @@ int main() {
       //LOG(INFO) << "SendBatch:start:" << j;
       for (size_t i = 0; i < 47; ++i) {
         if (!tun.getToTun().push([i,j](Packet *pkt) {
+          //cerr << "+";
           struct S_pkt buf = { j == 99, j, i == 46, i };
+          if (buf.end && buf.endBatch) {
+            cerr << "SendBatch:END:" << buf.end << ":" << buf.endBatch << endl;
+          }
           *((struct S_pkt *)pkt->buf) = buf;
           return sizeof(buf);
         })) {
@@ -54,6 +58,7 @@ int main() {
           return;
         }
       }
+      //cerr << "SendBatch:lock:" << j << endl;
       mutex.lock();
     }
   });
@@ -62,14 +67,16 @@ int main() {
     do {
       //LOG(INFO) << "RecvBatch:start";
       do {
-        if (!tun.getFromTun().pop([&buf](Packet *pkt) {
-            buf = *((struct S_pkt *)pkt->buf);
-            return 1;
-        })) {
-          cerr << "RecvBatch:pop:failed" <<endl;
-          return;
+        bool ret = tun.getFromTun().pop([&buf](Packet *pkt) {
+          //cerr << "-";
+          buf = *((struct S_pkt *)pkt->buf);
+          return 1;
+        });
+        if (!ret) {
+          cerr << "recvThread:" << ret << ":" << buf.endBatch << ":" << buf.end << endl;
         }
       } while(!buf.endBatch);
+      //cerr << "RecvBatch:unlock" << endl;;
       mutex.unlock();
     } while(!buf.end);
   });

@@ -10,10 +10,5 @@ before_install:
     - sudo apt-get install -y libboost-all-dev cmake
 
 script:
-    - cmake . && make
-    - (cd test && build/packet_buffer_test)
-    - (cd test && build/packet_queue_test)
-    - (cd test && build/packet_statistic_test)
-    - (cd test && build/if_addrs_test)
-    - (cd test && build/tun_device_test)
-    - (cd test && build/tuna_server_test)
+    - cmake -DCMAKE_BUILD_TYPE=Release . && make
+    - ctest --timeout 30

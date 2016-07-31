@@ -6,7 +6,9 @@
 using std::cerr;
 using std::endl;
 
-int main() {
+INITIALIZE_EASYLOGGINGPP
+int main(int argc, char *argv[]) {
+  START_EASYLOGGINGPP(argc, argv);
   PacketQueue pb(1313, 100, 10);
   for (size_t j = 0; j < 10; ++j) {
     cerr << "Run:" << j << endl;
@@ -59,17 +61,20 @@ int main() {
         return (int)sizeof(size_t);
       });
     }
+    //cerr << "START - over pop" << endl;
     for (size_t i = 0; i < 10; ++i) {
-      if (pb.pop([i](Packet *pkt) {
-        cerr << "should never called" << pkt << endl;
+      //cerr << "over pop:" << i << endl;
+      if (pb.pop([i](Packet *) {
+        //cerr << "should never called" << pkt << endl;
         return -1;
       })) {
-        cerr << "pop return ok" << endl;
+        //cerr << "pop return ok" << endl;
         return -1;
       }
     }
+    //cerr << "DONE - over pop" << endl;
     auto s = pb.getStatistic().getCurrent();
-    if (s.popEmpty != 20) {
+    if (s.popEmpty != 10) {
       cerr << "popEmpty failed:" << s.popEmpty << endl;
       return -1;
     }

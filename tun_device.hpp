@@ -39,7 +39,7 @@ private:
     fromTunThread = std::unique_ptr<std::thread>(new std::thread([this]() {
       while(running) {
         fromTun.push([this](Packet *pkt) {
-            return read(tunFd, pkt->buf, pkt->max_size);
+            return read(tunFd, pkt->buf, pkt->maxSize);
         });
       }
       LOG(INFO) << "stopped tun mode";
@@ -79,16 +79,16 @@ private:
   }
 
 public:
-  TunDevice() : started(false), seq(4711), fromTun(100, 5, 500),
-    toTun(100, 5, 500), running(false), tunDevName("defaultInit") {
+  TunDevice() : started(false), seq(4711), fromTun(100, 5, 100),
+    toTun(100, 5, 100), running(false), tunDevName("defaultInit") {
     //LOG(INFO) << "TunDevice:DEF:" << this;
   }
   TunDevice(const IfAddrs &ifAddrs, size_t mtu, size_t qSize) :
     started(false),
     seq(0),
     ifAddrs(ifAddrs),
-    fromTun(mtu, qSize, 500),
-    toTun(mtu, qSize, 500),
+    fromTun(mtu, qSize, 100),
+    toTun(mtu, qSize, 100),
     running(false),
     tunDevName("") {
     LOG(INFO) << "TunDevice:REL:" << this;
