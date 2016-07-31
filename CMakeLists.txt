@@ -3,25 +3,16 @@ project (Tunator)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${Tunator_SOURCE_DIR}/${CMAKE_BUILD_TYPE})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3")
-
-
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
-        message(FATAL_ERROR "GCC version >=4.8 required.")
-    endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.4)
-        message(FATAL_ERROR "Clang version >=3.4 required.")
-    endif()
-else()
-    message(WARNING "Your compiler (${CMAKE_CXX_COMPILER_ID}) has not been tested on this project. Only Clang and GCC has been tested. Please report any problems at the project page on GitHub.")
+if (${CMAKE_COMPILER_IS_GNUCXX})
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif()
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -g")
+
+
 #Only tested with versions 1.55 and 1.56
-find_package(Boost 1.54.0 COMPONENTS system regex coroutine context thread REQUIRED)
+find_package(Boost 1.54.0 COMPONENTS system regex coroutine context thread iostreams REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 if(APPLE)
