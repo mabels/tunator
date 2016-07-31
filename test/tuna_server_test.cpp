@@ -223,7 +223,7 @@ void test_packets(TunaTor& tunator) {
         exit(-4);
       }
       sendPacket(client, packetId);
-      if (packetId >= 1000) {
+      if (packetId >= 10000) {
         LOG(INFO) << "transmitted packets:" << packetId;
         client.send_close(4711);
       }
@@ -326,7 +326,7 @@ void simpleEchoServer(WsServer &server) {
 
 void simpleEchoClient(WsServer &server) {
   WsClient client("localhost:8080/echo");
-  ssize_t count = 1000;
+  ssize_t count = 30000;
   auto start = std::chrono::steady_clock::now();
   client.onmessage=[&client, &server, &count, &start](std::shared_ptr<WsClient::Message> message) {
       auto message_str=message->string();
@@ -397,7 +397,7 @@ int main(int argc, char *argv[]) {
 
   test_not_startable(tunaTor);
   test_wait_status(tunaTor);
-  for (int i = 0; i < 13; ++i) {
+  for (int i = 0; i < 100; ++i) {
     test_startable(tunaTor);
   }
   test_packets(tunaTor);
