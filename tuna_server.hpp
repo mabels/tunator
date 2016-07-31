@@ -148,7 +148,7 @@ template <class socketType> class TunaServer {
       return;
     }
     auto action = json["action"].asString().c_str();
-    LOG(INFO) << action;
+    //LOG(INFO) << action;
     switch (HashStringToInt(action)) {
     case HashStringToInt("init"):
       actionInit(json["data"], connection, packet);
@@ -157,7 +157,8 @@ template <class socketType> class TunaServer {
       actionPong(json["data"], tun, connection, packet);
       break;
     default:
-      LOG(ERROR) << "unknown action processJson:" << action;
+      LOG(ERROR) << "unknown action processJson:" << action
+        << ":" << packet.message.string();
     }
   }
   void processPacket(std::shared_ptr<TunDevice> &tun,
