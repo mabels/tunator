@@ -11,5 +11,5 @@ before_install:
 
 script:
     - cmake -DCMAKE_BUILD_TYPE=Release . && make
-    - test/Release/tuna_server_test
     - ctest --timeout 60
+    - test/Release/tuna_server_test > /dev/null
