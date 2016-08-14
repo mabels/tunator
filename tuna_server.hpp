@@ -89,10 +89,10 @@ template <class socketType> class TunaServer {
     *send_stream << "JSON";
     *send_stream << styledWriter.write(out);
     wsServer->send(connection, send_stream,
-                   [](const boost::system::error_code &ec) {
+                   [msg](const boost::system::error_code &ec) {
                      if (ec) {
-                       LOG(ERROR) << "Server: Error sending tun-message:" << ec
-                                  << ", error message: " << ec.message();
+                       LOG(ERROR) << "Server: Error sending tun-message:" << msg.getAction()
+                          << ":" << ec << ", error message: " << ec.message();
                      }
                    });
   }
@@ -140,7 +140,7 @@ template <class socketType> class TunaServer {
   void processJson(TunDevice *tun,
                    std::shared_ptr<typename WsServer::Connection> &connection,
                    WsPacket<WsServer> &packet) {
-    LOG(INFO) << "Reading JSON";
+    //LOG(INFO) << "Reading JSON";
     Json::Value json;
     Json::Reader reader;
     if (!reader.parse(packet.message, json, false)) {
@@ -199,7 +199,7 @@ public:
   }
 
   void start() {
-    auto &init = wsServer->endpoint["^/init$"];
+    auto &init = wsServer->endpoint["^/tunator$"];
     init.onmessage =
         [this](std::shared_ptr<typename WsServer::Connection> connection,
                std::shared_ptr<typename WsServer::Message> message) {
@@ -232,21 +232,31 @@ public:
                int status, const std::string & /*reason*/) {
           LOG(INFO) << "Server: Closed connection " << (size_t)connection.get()
                     << " with status code " << status;
-          auto tunDev = tunDevices.find(connection);
-          if (tunDev == tunDevices.end()) {
-            LOG(ERROR) << "Server: Closed connection not found";
-            return;
-          }
-          tunDev->second->stop();
-          tunDevices.erase(tunDev);
+          this->disconnect(connection);
         };
-    init.onerror = [](std::shared_ptr<typename WsServer::Connection> connection,
+    init.onerror = [this](std::shared_ptr<typename WsServer::Connection> connection,
                       const boost::system::error_code &ec) {
-      LOG(INFO) << "Server: Error in connection " << (size_t)connection.get()
+      LOG(INFO) << "Server: Error for connection " << (size_t)connection.get()
                 << ". "
                 << "Error: " << ec << ", error message: " << ec.message();
+      this->disconnect(connection);
     };
     wsServer->start();
+  }
+
+  void disconnect(std::shared_ptr<typename WsServer::Connection> &connection) {
+    // LOG(ERROR) << "Server:disconnected:-1" << connection.get();
+    auto tunDev = tunDevices.find(connection);
+    if (tunDev == tunDevices.end()) {
+      LOG(ERROR) << "Server: Closed connection not found";
+      return;
+    }
+    // LOG(ERROR) << "Server:disconnected:-2" << connection.get();
+    tunDev->second->stop();
+    // LOG(ERROR) << "Server:disconnected:-3" << connection.get();
+    tunDevices.erase(tunDev);
+    // LOG(ERROR) << "Server:disconnected:-4" << connection.get();
+    LOG(INFO) << "Server:disconnected:" << connection.get();
   }
 };
 

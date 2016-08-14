@@ -85,17 +85,20 @@ int main() {
     cerr << "ia.addRoute failed" << endl;
     return 1;
   }
-  auto ret = ia.asCommands("DEV");
-  auto ref = std::string("ip addr add 10.1.0.1/24 dev DEV\n"
-                         "ip addr add 10.2.0.1/24 dev DEV\n"
-                         "ip route add 172.16.0.1/24 via 172.16.0.254 dev DEV\n"
-                         "ip route add 172.17.0.1/24 via 172.17.0.254 dev DEV\n"
-                         "ip link set dev DEV mtu 1360 up\n");
-  if (ret != ref) {
-    cerr << "wrong string " << endl;
-    cerr << ret.length() << "[" << ret << "]" << endl;
-    cerr << ref.length() << "[" << ref << "]" << endl;
-    return 1;
+  auto cmds = ia.asCommands("DEV");
+  const char *ref[] = {
+               "/sbin/ip addr add 10.1.0.1/24 dev DEV",
+               "/sbin/ip addr add 10.2.0.1/24 dev DEV",
+               "/sbin/ip route add 172.16.0.1/24 via 172.16.0.254 dev DEV",
+               "/sbin/ip route add 172.17.0.1/24 via 172.17.0.254 dev DEV",
+               "/sbin/ip link set dev DEV mtu 1360 up" };
+  int idx = 0;
+  for (auto cmd : cmds) {
+      if (cmd.dump() != ref[idx]) {
+        cerr << "wrong string " << cmd.dump() << "!=" << ref[idx] << endl;
+        return 1;
+      }
+      ++idx;
   }
   {
     Json::StyledWriter styledWriter;

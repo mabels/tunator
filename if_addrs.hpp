@@ -14,6 +14,8 @@
 
 #include <json/json.h>
 
+#include "system_cmd.hpp"
+
 class IfAddrs {
 public:
   class RouteVia {
@@ -124,17 +126,19 @@ public:
     routes.push_back(route);
     return true;
   }
-  std::string asCommands(const std::string &dev) const {
-    std::stringstream s2;
+  std::vector<SystemCmd> asCommands(const std::string &dev) const {
+    std::vector<SystemCmd> ret;
     for (auto &addr : addrs) {
-      s2 << "ip addr add " << addr << " dev " << dev << std::endl;
+      ret.push_back(SystemCmd("/sbin/ip").arg("addr").arg("add").arg(addr).arg("dev").arg(dev));
     }
     for (auto &route : routes) {
-      s2 << "ip route add " << route.dest << " via " << route.via << " dev "
-         << dev << std::endl;
+      ret.push_back(SystemCmd("/sbin/ip").arg("route").arg("add")
+        .arg(route.dest).arg("via").arg(route.via)
+        .arg("dev").arg(dev));
     }
-    s2 << "ip link set dev " << dev << " mtu " << mtu << " up" << std::endl;
-    return s2.str();
+    ret.push_back(SystemCmd("/sbin/ip").arg("link").arg("set")
+      .arg("dev").arg(dev).arg("mtu").arg(mtu).arg("up"));
+    return ret;
   }
 
   void asJson(Json::Value &val) const {
@@ -144,7 +148,7 @@ public:
       for (auto &v : addrs) {
         res.append(v);
       }
-      val["ips"] = res;
+      val["addrs"] = res;
     }
     {
       Json::Value res(Json::arrayValue);
@@ -159,7 +163,7 @@ public:
 
   static bool fromJson(Json::Value &val, IfAddrs &ifAddrs) {
     ifAddrs.mtu = val.get("mtu", (Json::UInt64)ifAddrs.mtu).asInt();
-      for (auto &v : val["ips"]) {
+      for (auto &v : val["addrs"]) {
         if (!ifAddrs.addAddr(v.asString())) {
           LOG(ERROR) << "can not addAddr:" << v;
           return false;

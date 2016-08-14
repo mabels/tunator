@@ -37,3 +37,9 @@ cmake_install.cmake
 **/build
 **/3rdparty
 **/*-prefix
+
+**/Darwin/
+**/Debug/
+**/Linux/
+**/Release/
+

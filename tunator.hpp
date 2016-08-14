@@ -37,7 +37,7 @@ private:
 public:
   TunaTor() : tunaServerWSS(0), tunaServerWS(0),
     mtu(1500), qSize(64), address("127.0.0.1"), port(4711),
-    threads(4), cert(0), key(0), statFrequence(1000) {}
+    threads(4), cert(0), key(0), statFrequence(5000) {}
 
   ~TunaTor();
 
@@ -54,7 +54,7 @@ public:
 
   void dump() {
     LOG(INFO) << "mtu=" << mtu << " qsize=" << qSize
-              << "address=" << address << " port=" << port << " threads=" << threads
+              << " address=" << address << " port=" << port << " threads=" << threads
               << " cert=" << (cert ? cert : "") << " key=" << (key ? key : "")
               << " statFrequence=" << statFrequence;
   }

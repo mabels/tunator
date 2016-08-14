@@ -35,6 +35,13 @@ public:
 	//LOG(INFO) << "PacketQueue:" << mtu << ":" << size << ":" << blockWait;
   }
 
+  struct timeval getBlockTimeval() const {
+    struct timeval timeout = {
+      (long int)blockWait/1000,
+      1000*((long int)blockWait%1000) };
+    return timeout;
+  }
+
   const PacketBuffer &getPacketBuffer() const { return pb; }
 
   PacketStatistic getStatistic() { return ps.collect(); }
