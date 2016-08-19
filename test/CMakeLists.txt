@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.7)
 project (TunatorTest)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${TunatorTest_SOURCE_DIR}/${CMAKE_BUILD_TYPE})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11 -Wall -Wextra -DTEST")
 if (${CMAKE_COMPILER_IS_GNUCXX})
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif()
@@ -31,19 +31,23 @@ target_link_libraries(packet_queue_test ${CMAKE_THREAD_LIBS_INIT})
 add_test(packet_queue_test packet_queue_test)
 
 
-add_executable(if_addrs_test if_addrs_test.cpp)
-add_test(if_addrs_test if_addrs_test)
-target_link_libraries(if_addrs_test ${jsoncpp_LIBRARIES})
+add_executable(if_addrs_test_linux if_addrs_test.cpp ../if_addrs_linux.cpp)
+add_test(if_addrs_test_linux if_addrs_test_linux)
+target_link_libraries(if_addrs_test_linux ${jsoncpp_LIBRARIES})
 
-add_executable(tun_device_test tun_device_test.cpp ../tun_device.cpp)
+add_executable(if_addrs_test_macos if_addrs_test.cpp ../if_addrs_macos.cpp)
+add_test(if_addrs_test_macos if_addrs_test_macos)
+target_link_libraries(if_addrs_test_macos ${jsoncpp_LIBRARIES})
+
+
+add_executable(tun_device_test tun_device_test.cpp ../tun_device.cpp ../if_addrs_linux.cpp)
 target_link_libraries(tun_device_test ${Boost_LIBRARIES})
 target_link_libraries(tun_device_test ${CMAKE_THREAD_LIBS_INIT})
 add_test(tun_device_test tun_device_test)
 
-add_executable(tuna_server_test tuna_server_test.cpp ../tunator.cpp ../tun_device.cpp)
+add_executable(tuna_server_test tuna_server_test.cpp ../tunator.cpp ../tun_device.cpp ../if_addrs_linux.cpp)
 target_link_libraries(tuna_server_test ${jsoncpp_LIBRARIES})
 target_link_libraries(tuna_server_test ${Boost_LIBRARIES})
 target_link_libraries(tuna_server_test ${OPENSSL_LIBRARIES})
 target_link_libraries(tuna_server_test ${CMAKE_THREAD_LIBS_INIT})
 add_test(tuna_server_test tuna_server_test)
-

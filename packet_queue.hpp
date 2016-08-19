@@ -38,7 +38,7 @@ public:
   struct timeval getBlockTimeval() const {
     struct timeval timeout = {
       (long int)blockWait/1000,
-      1000*((long int)blockWait%1000) };
+      1000*((int)blockWait%1000) };
     return timeout;
   }
 

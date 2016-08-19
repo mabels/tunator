@@ -57,8 +57,12 @@ int main() {
       return 1;
     }
   }
+  auto dest = std::shared_ptr<IfAddrs>(new IfAddrs());
+  dest->addAddr("10.2.0.1/24");
+  dest->addAddr("fd00::1/112");
 
   IfAddrs ia;
+  ia.setDest(dest);
   ia.addAddr("10.1.0.1/24");
   if (!ia.addAddr("10.2.0.1/24")) {
     cerr << "ia.addAddr failed" << endl;
@@ -85,21 +89,19 @@ int main() {
     cerr << "ia.addRoute failed" << endl;
     return 1;
   }
+
   auto cmds = ia.asCommands("DEV");
-  const char *ref[] = {
-               "/sbin/ip addr add 10.1.0.1/24 dev DEV",
-               "/sbin/ip addr add 10.2.0.1/24 dev DEV",
-               "/sbin/ip route add 172.16.0.1/24 via 172.16.0.254 dev DEV",
-               "/sbin/ip route add 172.17.0.1/24 via 172.17.0.254 dev DEV",
-               "/sbin/ip link set dev DEV mtu 1360 up" };
   int idx = 0;
+  extern char *IfAddrsRef[];
+  bool needExit = false;
   for (auto cmd : cmds) {
-      if (cmd.dump() != ref[idx]) {
-        cerr << "wrong string " << cmd.dump() << "!=" << ref[idx] << endl;
-        return 1;
+      if (cmd.dump() != IfAddrsRef[idx]) {
+        cerr << "wrong string " << cmd.dump() << "!=" << IfAddrsRef[idx] << endl;
+        needExit = true;
       }
       ++idx;
   }
+  if (needExit) { return 1; }
   {
     Json::StyledWriter styledWriter;
     Json::Value iaFrom;

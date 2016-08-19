@@ -1,25 +1,34 @@
+#ifndef __SystemCmd__
+#define __SystemCmd__
+
 #include <vector>
 #include <string>
+#include <sstream>
+
+#define ELPP_THREAD_SAFE
+#include <easylogging++.h>
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
+#include <boost/optional.hpp>
 
 class SystemCmd {
 private:
   std::vector<std::string> args;
   std::vector<std::string> envs;
   const std::string exec;
-  int status;
+  boost::optional<int> status;
 public:
-  SystemCmd(const std::string &cmd) : exec(cmd), status(-1) {
+  SystemCmd(const std::string &cmd) : exec(cmd) {
       arg(exec);
   }
-  SystemCmd(const char *cmd) : exec(cmd), status(-1) {
+  SystemCmd(const char *cmd) : exec(cmd) {
       arg(exec);
   }
 
-  int getStatus() {
+  boost::optional<int> getStatus() {
     return status;
   }
 
@@ -53,12 +62,13 @@ public:
       }
       first = false;
     }
-    if (status >= 0) {
-      ret << "=>" << status;
+    if (status) {
+      ret << "=>" << *status;
     }
     return ret.str();
   }
   int run() {
+    signal(SIGCHLD, SIG_IGN);
     pid_t pid = fork();
     if (pid == 0) {
       char *argv[args.size()+1];
@@ -71,10 +81,18 @@ public:
       for (size_t i = 0; i < envs.size(); ++i) {
           envp[i] = (char *)envs[i].c_str();
       }
-      execve(exec.c_str(), argv, envp);
+      if (execve(exec.c_str(), argv, envp) == -1) {
+        LOG(ERROR) << "exec failed:" << dump();
+        exit(4);
+      }
+      exit(0);
     }
-    waitpid(pid, &status, WEXITED);
+    int _status;
+    waitpid(pid, &_status, WEXITED);
+    status = _status;
     LOG(INFO) << dump();
-    return status;
+    return *status;
   }
 };
+
+#endif

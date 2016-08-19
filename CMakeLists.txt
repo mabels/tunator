@@ -33,7 +33,7 @@ find_package(Threads REQUIRED)
 
 include_directories(.)
 
-add_executable(main main.cpp tunator.cpp tun_device.cpp)
+add_executable(main main.cpp tunator.cpp tun_device.cpp if_addrs_macos.cpp if_addrs_linux.cpp)
 add_dependencies(main SimpleWebSocketServer)
 add_dependencies(main jsoncpp)
 #target_link_libraries(main ${jsoncpp_LIBRARY_DIR})

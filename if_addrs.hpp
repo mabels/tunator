@@ -42,6 +42,7 @@ public:
 
 private:
   size_t mtu;
+  std::shared_ptr<IfAddrs> dest;
   std::vector<std::string> addrs;
   std::vector<RouteVia> routes;
 
@@ -97,6 +98,7 @@ public:
     // LOG(INFO) << addrs.size() << ":" << addrs.empty();
     // LOG(INFO) << asCommands("isEcho");
   }
+  std::shared_ptr<IfAddrs> getDest() const { return dest; }
   const std::vector<std::string> &getAddrs() const { return addrs; }
   const std::vector<RouteVia> &getRoutes() const { return routes; }
 
@@ -112,6 +114,9 @@ public:
     // LOG(INFO) << asCommands("isEcho");
     return addrs.empty();
   }
+  void setDest(std::shared_ptr<IfAddrs> &dest) {
+    this->dest = dest;
+  }
   bool addAddr(const std::string &addr) {
     if (!IfAddrs::isValidWithPrefix(addr)) {
       return false;
@@ -126,22 +131,12 @@ public:
     routes.push_back(route);
     return true;
   }
-  std::vector<SystemCmd> asCommands(const std::string &dev) const {
-    std::vector<SystemCmd> ret;
-    for (auto &addr : addrs) {
-      ret.push_back(SystemCmd("/sbin/ip").arg("addr").arg("add").arg(addr).arg("dev").arg(dev));
-    }
-    for (auto &route : routes) {
-      ret.push_back(SystemCmd("/sbin/ip").arg("route").arg("add")
-        .arg(route.dest).arg("via").arg(route.via)
-        .arg("dev").arg(dev));
-    }
-    ret.push_back(SystemCmd("/sbin/ip").arg("link").arg("set")
-      .arg("dev").arg(dev).arg("mtu").arg(mtu).arg("up"));
-    return ret;
-  }
+  std::vector<SystemCmd> asCommands(const std::string &dev) const;
 
   void asJson(Json::Value &val) const {
+    if (dest.get()) {
+      dest->asJson(val["dest"]);
+    }
     val["mtu"] = Json::Value((Json::UInt64)mtu);
     {
       Json::Value res(Json::arrayValue);
@@ -162,7 +157,12 @@ public:
   }
 
   static bool fromJson(Json::Value &val, IfAddrs &ifAddrs) {
-    ifAddrs.mtu = val.get("mtu", (Json::UInt64)ifAddrs.mtu).asInt();
+    if (!val["dest"].isNull()) {
+      auto dest = std::shared_ptr<IfAddrs>(new IfAddrs());
+      fromJson(val["dest"], *(dest.get()));
+      ifAddrs.setDest(dest);
+    }
+    ifAddrs.setMtu(val.get("mtu", (Json::UInt64)ifAddrs.getMtu()).asInt());
       for (auto &v : val["addrs"]) {
         if (!ifAddrs.addAddr(v.asString())) {
           LOG(ERROR) << "can not addAddr:" << v;
