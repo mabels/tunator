@@ -57,12 +57,9 @@ int main() {
       return 1;
     }
   }
-  auto dest = std::shared_ptr<IfAddrs>(new IfAddrs());
-  dest->addAddr("10.2.0.1/24");
-  dest->addAddr("fd00::1/112");
-
   IfAddrs ia;
-  ia.setDest(dest);
+  ia.addDest("10.2.1.0");
+  ia.addDest("fd00::1");
   ia.addAddr("10.1.0.1/24");
   if (!ia.addAddr("10.2.0.1/24")) {
     cerr << "ia.addAddr failed" << endl;

@@ -6,21 +6,28 @@
 
 #if defined(__APPLE_CC__) || defined(TEST)
 std::vector<SystemCmd> IfAddrs::asCommands(const std::string &dev) const {
+  LOG(INFO) << "asCommands:1";
   std::vector<SystemCmd> ret;
   for (auto &addr : addrs) {
+    LOG(INFO) << "asCommands:1a";
     // missing ipv4 ipv6 sorting
-    for (auto &dst : getDest()->getAddrs()) {
+    for (auto &dst : getDests()) {
+      LOG(INFO) << "asCommands:2";
       ret.push_back(SystemCmd("/sbin/ifconfig").arg(dev).arg(addr).arg(dst));
     }
   }
+  LOG(INFO) << "asCommands:3";
   for (auto &route : routes) {
+    LOG(INFO) << "asCommands:4";
     ret.push_back(SystemCmd("/sbin/route").arg("add")
       .arg("-ifscope").arg(dev)
       .arg(route.dest).arg(route.via)
       .arg("dev").arg(dev));
   }
+  LOG(INFO) << "asCommands:5";
   ret.push_back(SystemCmd("/sbin/ifconfig").arg(dev)
       .arg("mtu").arg(mtu).arg("up"));
+  LOG(INFO) << "asCommands:6";
   return ret;
 }
 

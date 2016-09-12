@@ -7,6 +7,13 @@
 
 #include <fcntl.h>
 
+bool is_v4(void *bytes) {
+  return (((unsigned char*)bytes)[0]&0xf0) == 0x40;
+}
+bool is_v6(void *bytes) {
+  return (((unsigned char*)bytes)[0]&0xf0) == 0x60;
+}
+
 #ifdef __APPLE_CC__
 #include <sys/types.h>
 #include <sys/ioctl.h>
@@ -14,7 +21,11 @@
 #include <sys/sys_domain.h>
 #include <sys/kern_control.h>
 #include <net/if_utun.h>
+#include <sys/types.h>
+#include <sys/uio.h>
 #include <unistd.h>
+
+#define TUNDEV_HEADER_SIZE 4
 
 int tun_alloc(std::string &dev) {
   int fd = socket(PF_SYSTEM, SOCK_DGRAM, SYSPROTO_CONTROL);
@@ -54,32 +65,25 @@ int tun_alloc(std::string &dev) {
   return fd;
 }
 
-#ifdef UNUSED
-int tun_alloc(std::string &dev) {
-  int fd = 0;
-  for (int i = 0; i < 255; ++i) {
-    char buf[128];
-    sprintf(buf, "/dev/tun%d", i);
-    printf("try:%s\n", buf);
-    if ((fd = open(buf, O_RDWR)) > 0) {
-      char *slash = strrchr(buf, '/');
-      if (slash) {
-        dev = slash + 1;
-      } else {
-        dev = buf;
-      }
-      return fd;
-    }
+void tun_header(char *header, void *bytes, size_t nbytes) {
+  if (nbytes < 1) {
+    return;
   }
-  return -1;
+  if (is_v4(bytes)) {
+    header[3] = 2;
+  } else if (is_v6(bytes)) {
+    header[3] = 30;
+  }
 }
-#endif
 #else
 #include <linux/if_tun.h>
 #include <net/if.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+
+#define TUNDEV_HEADER_SIZE 4
+
 int tun_alloc(std::string &dev) {
   int fd = open("/dev/net/tun", O_RDWR);
   if (fd < 0) {
@@ -102,4 +106,50 @@ int tun_alloc(std::string &dev) {
   close(fd);
   return -1;
 }
+
+void tun_header(char *header, void *bytes, size_t nbytes) {
+  if (nbytes < 1) {
+    return;
+  }
+  if (is_v4(bytes)) {
+    header[2] = 8;
+  } else if (is_v6(bytes)) {
+    header[2] = -122;
+    header[3] = -35;
+  }
+}
 #endif
+
+int tun_write(int fd, void *bytes, size_t nbytes) {
+  char header[TUNDEV_HEADER_SIZE] = { 0, 0, 0, 0};
+  tun_header(header, bytes, nbytes);
+  struct iovec iov[] = {{ header, sizeof(header) },
+                        { bytes, nbytes }};
+  int ret = writev(fd, iov, sizeof(iov)/sizeof(iovec));
+  if (ret <= 0) {
+    return ret;
+  }
+  return ret - sizeof(header);
+}
+
+int tun_read(int fd, void *bytes, size_t nbytes) {
+  char header[TUNDEV_HEADER_SIZE];
+  struct iovec iov[] = {{ header, sizeof(header) },
+                        { bytes, nbytes }};
+  int ret = readv(fd, iov, sizeof(iov)/sizeof(iovec));
+  if (ret <= 0) {
+    return ret;
+  }
+//    for (int i = 0; i< ret; i++)
+//    {
+//       printf ("%02x ", (int)((char*)iov[1].iov_base)[i]);
+//       if ( (i-4)%16 ==15) printf("\n");
+//    }
+//    printf ("\n");
+
+  // LOG(INFO) << "tun_read:" << ret << ":"
+  //    << (int)header[0] << " " << (int)header[1] << " "
+  //    << (int)header[2] << " " << (int)header[3] << ":"
+  //    << (int)((char*)iov[1].iov_base)[0];
+  return ret - sizeof(header);
+}

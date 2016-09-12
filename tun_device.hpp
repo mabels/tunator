@@ -16,7 +16,8 @@
 
 
 extern int tun_alloc(std::string &dev);
-
+extern int tun_read(int fd, void *buf, size_t nbytes);
+extern int tun_write(int fd, void *buf, size_t nbytes);
 
 class TunDevice {
 private:
@@ -45,6 +46,7 @@ private:
       LOG(ERROR) << "tun_alloc failed with:" << errno;
       return false;
     }
+    LOG(INFO) << "found tun device:" << tunDevName;
     tunFd = fd;
     for (auto &cmd : ifAddrs.asCommands(tunDevName)) {
       cmd.run();
@@ -67,7 +69,8 @@ private:
           int ret;
           do {
             again = false;
-            ret = read(tunFd, pkt->buf, pkt->maxSize);
+            ret = tun_read(tunFd, pkt->buf, pkt->maxSize);
+            //LOG(INFO) << "read:" << ret;
             if (ret == 0) {
               return tunDevError("tunDev closed");
             }
@@ -100,7 +103,7 @@ private:
       setsockopt(tunFd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(struct timeval));
       while(running) {
         toTun.pop([this](Packet *pkt) {
-            return write(tunFd, pkt->buf, pkt->size);
+            return tun_write(tunFd, pkt->buf, pkt->size);
         });
       }
     }));
