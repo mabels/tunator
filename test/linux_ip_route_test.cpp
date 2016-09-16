@@ -25,5 +25,26 @@ int main() {
         Chai::assert.isFalse(iproute.isErr());
         Chai::assert.equal(s2.str(), LinuxIpRoute::serialize(iproute.unwrap()));
     });
+    it("ip route add", []() {
+        std::stringstream s2;
+        s2 <<
+          "default via 172.31.1.1 dev eth0" << std::endl <<
+          "169.254.12.0/24 dev br12 proto kernel scope link src 169.254.12.1" << std::endl;
+        auto iproute = LinuxIpRoute::parse(s2.str()).unwrap();
+        Chai::assert.deepEqual(LinuxIpRoute::add(iproute),
+            {"/sbin/ip route add default via 172.31.1.1 dev eth0",
+             "/sbin/ip route add 169.254.12.0/24 dev br12 proto kernel scope link src 169.254.12.1"});
+    });
+    it("ip route del", []() {
+        std::stringstream s2;
+        s2 <<
+          "default via 172.31.1.1 dev eth0" << std::endl <<
+          "169.254.12.0/24 dev br12 proto kernel scope link src 169.254.12.1" << std::endl;
+        auto iproute = LinuxIpRoute::parse(s2.str()).unwrap();
+        Chai::assert.deepEqual(LinuxIpRoute::del(iproute),
+            {"/sbin/ip route del default via 172.31.1.1 dev eth0",
+             "/sbin/ip route del 169.254.12.0/24 dev br12 proto kernel scope link src 169.254.12.1"});
+    });
   });
+  exit();
 }

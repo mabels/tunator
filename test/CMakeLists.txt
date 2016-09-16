@@ -9,6 +9,11 @@ endif()
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -g")
 
+if(APPLE)
+    set(CMAKE_MACOSX_RPATH 1)
+    #  set(OPENSSL_ROOT_DIR "/usr/local/opt/openssl")
+endif()
+
 
 #set(CMAKE_SHARED_LINKER_FLAGS="-lprofiler -ltcmalloc")
 
@@ -33,10 +38,12 @@ add_test(packet_queue_test packet_queue_test)
 
 add_executable(if_addrs_test_linux if_addrs_test.cpp ../if_addrs_linux.cpp)
 add_test(if_addrs_test_linux if_addrs_test_linux)
+target_link_libraries(if_addrs_test_linux ${Boost_LIBRARIES})
 target_link_libraries(if_addrs_test_linux ${jsoncpp_LIBRARIES})
 
 add_executable(if_addrs_test_macos if_addrs_test.cpp ../if_addrs_macos.cpp)
 add_test(if_addrs_test_macos if_addrs_test_macos)
+target_link_libraries(if_addrs_test_macos ${Boost_LIBRARIES})
 target_link_libraries(if_addrs_test_macos ${jsoncpp_LIBRARIES})
 
 

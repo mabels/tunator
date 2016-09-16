@@ -6,23 +6,68 @@
 #include <iterator>
 #include <boost/tokenizer.hpp>
 
-#include <ipaddress.hpp>
-
-
-class IPRoute {
-  public:
-  IPAddress dest;
-  Option<IPAddress> via;
-  Option<std::string> dev;
-  Option<std::string> proto;
-  Option<std::string> scope;
-  Option<IPAddress> src;
-  Option<size_t> metric;
-};
+#include "iproute.hpp"
+#include "system_cmd.hpp"
 
 class LinuxIpRoute {
   public:
+    static std::string serialize(const IPRoute &ipr) {
+      std::stringstream s2;
+        auto dest = ipr.dest.to_string();
+        if (dest == "0.0.0.0/0") {
+          s2 << "default";
+        } else {
+          s2 << dest;
+        }
+        if (ipr.via.isSome()) {
+          s2 << " via " << ipr.via.unwrap().to_s();
+        }
+        if (ipr.dev.isSome()) {
+          s2 << " dev " << ipr.dev.unwrap();
+        }
+        if (ipr.proto.isSome()) {
+          s2 << " proto " << ipr.proto.unwrap();
+        }
+        if (ipr.scope.isSome()) {
+          s2 << " scope " << ipr.scope.unwrap();
+        }
+        if (ipr.src.isSome()) {
+          s2 << " src " << ipr.src.unwrap().to_s();
+        }
+        if (ipr.metric.isSome()) {
+          s2 << " metric " << ipr.metric.unwrap();
+        }
+        return s2.str();
+    }
+    static std::string add(const IPRoute &ipr) { return LinuxIpRoute::command(ipr, "add"); }
+    static std::string del(const IPRoute &ipr) { return LinuxIpRoute::command(ipr, "del"); }
+    static std::vector<std::string> command(const std::vector<IPRoute> &iprs, const char *mod) { 
+      std::vector<std::string> ret;
+      for (auto ipr : iprs) {
+        ret.push_back(LinuxIpRoute::command(ipr, mod)); 
+      }
+      return ret;
+    }
+    static std::vector<std::string> add(const std::vector<IPRoute> &iprs) { 
+      return LinuxIpRoute::command(iprs, "add"); 
+    }
+    static std::vector<std::string> del(const std::vector<IPRoute> &iprs) { 
+      return LinuxIpRoute::command(iprs, "del"); 
+    }
+    static std::string command(const IPRoute &ipr, const char *mod) {
+      std::stringstream ipcmd;
+      ipcmd << "/sbin/ip route " << mod << " " << LinuxIpRoute::serialize(ipr);
+      return ipcmd.str();
+    }
     static Result<std::vector<IPRoute>> read() {
+      auto srv4 = SystemCmd("/sbin/ip").arg("-4").arg("route").arg("list").run();
+      auto srv6 = SystemCmd("/sbin/ip").arg("-6").arg("route").arg("list").run();
+      if (!srv4.ok || !srv6.ok || srv4.exitCode != 0 || srv6.exitCode != 0) {
+        return Err<std::vector<IPRoute>>("failure while running ip command");
+      }
+      std::stringstream s2; 
+      s2 << srv4.sout.str() << srv6.sout.str();
+      return LinuxIpRoute::parse(s2.str());
     }
     static Result<std::vector<IPRoute>> parse(const std::string &_lines) {
       std::vector<IPRoute> ret;
@@ -99,31 +144,8 @@ class LinuxIpRoute {
       std::stringstream s2;
       for (auto &ipr : iprs) {
 //std::cout << "serial-3-1" << ipr.dest << std::endl;
-        auto dest = ipr.dest.to_string();
-        if (dest == "0.0.0.0/0") {
-          s2 << "default";
-        } else {
-          s2 << dest;
-        }
-        if (ipr.via.isSome()) {
-          s2 << " via " << ipr.via.unwrap().to_s();
-        }
-        if (ipr.dev.isSome()) {
-          s2 << " dev " << ipr.dev.unwrap();
-        }
-        if (ipr.proto.isSome()) {
-          s2 << " proto " << ipr.proto.unwrap();
-        }
-        if (ipr.scope.isSome()) {
-          s2 << " scope " << ipr.scope.unwrap();
-        }
-        if (ipr.src.isSome()) {
-          s2 << " src " << ipr.src.unwrap().to_s();
-        }
-        if (ipr.metric.isSome()) {
-          s2 << " metric " << ipr.metric.unwrap();
-        }
 //std::cout << "parse-3-2" << std::endl;
+        s2 << LinuxIpRoute::serialize(ipr);
         s2 << std::endl;
       }
 //std::cout << "parse-4" << std::endl;
