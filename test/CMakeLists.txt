@@ -51,3 +51,15 @@ target_link_libraries(tuna_server_test ${Boost_LIBRARIES})
 target_link_libraries(tuna_server_test ${OPENSSL_LIBRARIES})
 target_link_libraries(tuna_server_test ${CMAKE_THREAD_LIBS_INIT})
 add_test(tuna_server_test tuna_server_test)
+
+add_executable(linux_ip_route_test linux_ip_route_test.cpp)
+target_link_libraries(linux_ip_route_test ${ipaddress_LIBRARIES})
+target_link_libraries(linux_ip_route_test ${Boost_LIBRARIES})
+target_link_libraries(linux_ip_route_test ${CMAKE_THREAD_LIBS_INIT})
+add_test(linux_ip_route_test linux_ip_route_test)
+
+
+add_executable(system_cmd_test system_cmd_test.cpp)
+target_link_libraries(system_cmd_test ${Boost_LIBRARIES})
+target_link_libraries(system_cmd_test ${CMAKE_THREAD_LIBS_INIT})
+add_test(system_cmd_test system_cmd_test)
