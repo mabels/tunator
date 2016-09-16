@@ -136,7 +136,7 @@ public:
 
         boost::asio::async_read(ds, buf, [&ds, &buf, &output]
                       (boost::system::error_code ec, std::size_t bytes_transferred) {
-                      LOG(INFO) << "read:" << ec << ":" << bytes_transferred << std::endl;
+                      // LOG(INFO) << "read:" << ec << ":" << bytes_transferred << std::endl;
                       if (ec == boost::asio::error::eof || !ec) {
                         std::string s(boost::asio::buffer_cast<char*>(buf), bytes_transferred);
                         //std::cout << "Hello:" << bytes_transferred << ":" << s << std::endl;
@@ -155,8 +155,6 @@ public:
       //signal(SIGCHLD, SIG_IGN);
       pid_t pid = fork();
       if (pid == 0) {
-        exit(13);
-        return 13;
         close(1); dup2(stdOut, 1);
         close(2); dup2(stdErr, 2);
         char *argv[args.size()+1];
@@ -187,8 +185,8 @@ public:
       if (sr.waitPid > 0) {
         while (waitpid(sr.waitPid, &sr.statusCode, WNOHANG) > 0) {}
         if (WIFEXITED(sr.statusCode)) {
-          LOG(INFO) << "EXIT sigchld:" << sr.waitPid << ":" << sr.statusCode
-            << ":" << WEXITSTATUS(sr.statusCode);
+          // LOG(INFO) << "EXIT sigchld:" << sr.waitPid << ":" << sr.statusCode
+          //   << ":" << WEXITSTATUS(sr.statusCode);
           sr.exitCode = WEXITSTATUS(sr.statusCode);
         } else {
           LOG(INFO) << "Restart sigchld:" << sr.waitPid << ":" << sr.statusCode;
@@ -231,7 +229,7 @@ public:
     // sr.waitPid = waitpid(pid, &sr.statusCode, WEXITED);
     // sr.exitCode = WEXITSTATUS(sr.statusCode);
     //LOG(INFO) << " WIFEXITED(status):" << WIFEXITED(status) << std::endl;
-    std::cout << sr.waitPid << ":" << sr.exitCode << "--" << sr.sout.str() << "--" << sr.serr.str() << std::endl;
+    //std::cout << sr.waitPid << ":" << sr.exitCode << "--" << sr.sout.str() << "--" << sr.serr.str() << std::endl;
     sr.ok = !(sr.exitCode == 42 && sr.sout.str() == sr.serr.str() && sr.sout.str() == "[exec failed]");
     sr.cmd = this->dump();
     //LOG(INFO) << sr.ok << ":" << dump();

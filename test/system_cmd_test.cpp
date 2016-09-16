@@ -6,7 +6,7 @@
 
 #ifdef __APPLE_CC__
 #define EXEC_TRUE "/usr/bin/true"
-#define EXEC_FALSE "/usr/bin/true"
+#define EXEC_FALSE "/usr/bin/false"
 #define EXEC_ECHO "/bin/echo"
 #define EXEC_SLEEP "/bin/sleep"
 #else
@@ -37,10 +37,10 @@ int main() {
         Chai::assert.isTrue(SystemCmd(EXEC_TRUE).run().ok);
     });
     it("return ok", []() {
-        Chai::assert.equal(1, SystemCmd(EXEC_TRUE).run().exitCode);
+        Chai::assert.equal(0, SystemCmd(EXEC_TRUE).run().exitCode);
     });
     it("return false", []() {
-        Chai::assert.equal(0, SystemCmd(EXEC_FALSE).run().exitCode);
+        Chai::assert.equal(1, SystemCmd(EXEC_FALSE).run().exitCode);
     });
     it("stdout empty", []() {
         Chai::assert.isTrue(SystemCmd(EXEC_TRUE).run().sout.str().empty());
@@ -53,7 +53,7 @@ int main() {
         Chai::assert.equal(SystemCmd(EXEC_ECHO).arg("hello world").run().sout.str(), "hello world\n");
         Chai::assert.equal(SystemCmd(EXEC_ECHO).arg("hello world").run().serr.str(), "");
     });
-    it("stdout hello world", []() {
+    it("stderr output", []() {
         Chai::assert.isTrue(SystemCmd("/usr/bin/grep").arg("---Fehler").run().sout.str().empty());
         Chai::assert.isFalse(SystemCmd("/usr/bin/grep").arg("---Fehler").run().serr.str().empty());
     });
