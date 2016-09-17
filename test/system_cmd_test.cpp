@@ -9,11 +9,13 @@
 #define EXEC_FALSE "/usr/bin/false"
 #define EXEC_ECHO "/bin/echo"
 #define EXEC_SLEEP "/bin/sleep"
+#define EXEC_GREP "/usr/bin/grep"
 #else
 #define EXEC_TRUE "/bin/true"
 #define EXEC_FALSE "/bin/false"
 #define EXEC_ECHO "/bin/echo"
 #define EXEC_SLEEP "/bin/sleep"
+#define EXEC_GREP "/bin/grep"
 #endif
 
 INITIALIZE_EASYLOGGINGPP
@@ -54,8 +56,8 @@ int main() {
         Chai::assert.equal(SystemCmd(EXEC_ECHO).arg("hello world").run().serr.str(), "");
     });
     it("stderr output", []() {
-        Chai::assert.isTrue(SystemCmd("/usr/bin/grep").arg("---Fehler").run().sout.str().empty());
-        Chai::assert.isFalse(SystemCmd("/usr/bin/grep").arg("---Fehler").run().serr.str().empty());
+        Chai::assert.isTrue(SystemCmd(EXEC_GREP).arg("---Fehler").run().sout.str().empty());
+        Chai::assert.isFalse(SystemCmd(EXEC_GREP).arg("---Fehler").run().serr.str().empty());
     });
   });
   exit();

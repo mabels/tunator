@@ -3,6 +3,11 @@
 #include <iostream>
 #include <map>
 
+#include <ipaddress.hpp>
+
+#include "mocha.hpp"
+#include "chai.hpp"
+
 //#include <boost/property_tree/json_parser.hpp>
 //#include <boost/property_tree/ptree.hpp>
 
@@ -11,6 +16,7 @@ using std::endl;
 
 INITIALIZE_EASYLOGGINGPP
 int main() {
+
   std::map<std::string, bool> testIsValidWithPrefix = {
     {"", false},
     {"a.b.c.d", false },
@@ -20,7 +26,7 @@ int main() {
     {"/", false },
     {"/17", false },
     {"/a7", false },
-    {"200.200.200.200/", true },
+    {"200.200.200.200/", false },
     {"200.200.200.200/a7", false },
     {"200.200.200.200/7", true },
     {"200.200.200.200/-1", false },
@@ -32,8 +38,9 @@ int main() {
     {"200:200:200::200/129", false }
   };
   for (const auto &kv : testIsValidWithPrefix) {
-    if (kv.second != IfAddrs::isValidWithPrefix(kv.first)) {
-      cerr << "IfAddrs::isValidWithPrefix failed on:" << kv.first << ":"
+    auto ipa = IPAddress::parse(kv.first); 
+    if (kv.second != ipa.isOk()) {
+      cerr << "IfAddrs::isValidWithPrefix failed on|" << kv.first << "|"
            << kv.second << endl;
       return 1;
     }
@@ -43,15 +50,17 @@ int main() {
     {"/", false },
     {"/a7", false },
     {"/17", false },
-    {"1.2.3.4/17", false },
-    {"1:2:3::4/17", false },
+    {"1.2.3.4/17", true },
+    {"1:2:3::4/17", true },
     {"300.2.3.4", false },
     {"1:zoo:3::4", false },
     {"1.2.3.4", true },
     {"1:2:3::4", true }
   };
   for (const auto &kv : testIsValidWithoutPrefix) {
-    if (kv.second != IfAddrs::isValidWithoutPrefix(kv.first)) {
+    auto ipa = IPAddress::parse(kv.first); 
+    if (kv.second != ipa.isOk()) {
+    //if (kv.second != IfAddrs::isValidWithoutPrefix(kv.first)) {
       cerr << "IfAddrs::isValidWithPrefix failed on:" << kv.first << ":"
            << kv.second << endl;
       return 1;
@@ -69,20 +78,20 @@ int main() {
     cerr << "ia.addAddr failed" << endl;
     return 1;
   }
-  ia.addRoute(IfAddrs::RouteVia("172.16.0.1/24", "172.16.0.254"));
-  if (!ia.addRoute(IfAddrs::RouteVia("172.17.0.1/24", "172.17.0.254"))) {
+  ia.addRoute(IfAddrs::RouteVia::create("172.16.0.1/24", "172.16.0.254").unwrap());
+  if (!ia.addRoute(IfAddrs::RouteVia::create("172.17.0.1/24", "172.17.0.254").unwrap())) {
     cerr << "ia.addRoute failed" << endl;
     return 1;
   }
-  if (ia.addRoute(IfAddrs::RouteVia("300.17.0.1/24", "172.17.0.254"))) {
+  if (!IfAddrs::RouteVia::create("300.17.0.1/24", "172.17.0.254").isErr()) {
     cerr << "ia.addRoute failed" << endl;
     return 1;
   }
-  if (ia.addRoute(IfAddrs::RouteVia("300.17.0.1/24", "172.17.0.254/23"))) {
+  if (!IfAddrs::RouteVia::create("129.17.0.1/24", "172.17.0.254/23").isErr()) {
     cerr << "ia.addRoute failed" << endl;
     return 1;
   }
-  if (ia.addRoute(IfAddrs::RouteVia("300.17.0.1/24", "172.17.0.354"))) {
+  if (!IfAddrs::RouteVia::create("129.17.0.1/24", "172.17.0.354").isErr()) {
     cerr << "ia.addRoute failed" << endl;
     return 1;
   }

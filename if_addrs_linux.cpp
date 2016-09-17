@@ -8,11 +8,11 @@
 std::vector<SystemCmd> IfAddrs::asCommands(const std::string &dev) const {
   std::vector<SystemCmd> ret;
   for (auto &addr : addrs) {
-    ret.push_back(SystemCmd("/sbin/ip").arg("addr").arg("add").arg(addr).arg("dev").arg(dev));
+    ret.push_back(SystemCmd("/sbin/ip").arg("addr").arg("add").arg(addr.to_string()).arg("dev").arg(dev));
   }
   for (auto &route : routes) {
     ret.push_back(SystemCmd("/sbin/ip").arg("route").arg("add")
-      .arg(route.dest).arg("via").arg(route.via)
+      .arg(route.dest.to_string()).arg("via").arg(route.via.to_s())
       .arg("dev").arg(dev));
   }
   ret.push_back(SystemCmd("/sbin/ip").arg("link").arg("set")

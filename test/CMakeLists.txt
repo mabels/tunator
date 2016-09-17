@@ -38,11 +38,13 @@ add_test(packet_queue_test packet_queue_test)
 
 add_executable(if_addrs_test_linux if_addrs_test.cpp ../if_addrs_linux.cpp)
 add_test(if_addrs_test_linux if_addrs_test_linux)
+target_link_libraries(if_addrs_test_linux ${ipaddress_LIBRARIES})
 target_link_libraries(if_addrs_test_linux ${Boost_LIBRARIES})
 target_link_libraries(if_addrs_test_linux ${jsoncpp_LIBRARIES})
 
 add_executable(if_addrs_test_macos if_addrs_test.cpp ../if_addrs_macos.cpp)
 add_test(if_addrs_test_macos if_addrs_test_macos)
+target_link_libraries(if_addrs_test_macos ${ipaddress_LIBRARIES})
 target_link_libraries(if_addrs_test_macos ${Boost_LIBRARIES})
 target_link_libraries(if_addrs_test_macos ${jsoncpp_LIBRARIES})
 
@@ -53,6 +55,7 @@ target_link_libraries(tun_device_test ${CMAKE_THREAD_LIBS_INIT})
 add_test(tun_device_test tun_device_test)
 
 add_executable(tuna_server_test tuna_server_test.cpp ../tunator.cpp ../tun_device.cpp ../if_addrs_linux.cpp)
+target_link_libraries(tuna_server_test ${ipaddress_LIBRARIES})
 target_link_libraries(tuna_server_test ${jsoncpp_LIBRARIES})
 target_link_libraries(tuna_server_test ${Boost_LIBRARIES})
 target_link_libraries(tuna_server_test ${OPENSSL_LIBRARIES})

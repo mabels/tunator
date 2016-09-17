@@ -2,6 +2,7 @@
 #include "chai.hpp"
 #include "../linux_ip_route.hpp"
 
+INITIALIZE_EASYLOGGINGPP
 int main() {
   describe("linux-parse", []() {
       it("parse-linux-map", []() {
