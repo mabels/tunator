@@ -62,13 +62,19 @@ public:
 
 class SystemResult {
   public:
-  std::stringstream sout;
-  std::stringstream serr;
+  // gcc 4.8 is has a explict deleted constructor in std::stringstream
+  std::shared_ptr<std::stringstream> _sout;
+  std::shared_ptr<std::stringstream> _serr;
   std::string cmd;
   bool ok;
   int statusCode;
   int exitCode;
   int waitPid;
+  SystemResult() : _sout(new std::stringstream()), _serr(new std::stringstream()) {} 
+  std::stringstream& getSout() { return *_sout; } 
+  const std::stringstream& getSout() const  { return *_sout; } 
+  std::stringstream& getSerr() { return *_serr; } 
+  const std::stringstream& getSerr() const { return *_serr; } 
   static SystemResult err() {
     SystemResult ret;
     ret.ok = false;
@@ -216,8 +222,8 @@ public:
     boost::array<char, 4096> serrArray;
     auto soutBuffer = boost::asio::buffer(soutArray);
     auto serrBuffer = boost::asio::buffer(serrArray);
-    register_read(sdOut, soutBuffer, sr.sout);
-    register_read(sdErr, serrBuffer, sr.serr);
+    register_read(sdOut, soutBuffer, sr.getSout());
+    register_read(sdErr, serrBuffer, sr.getSerr());
     // char buf[1000];
     // int len;
     // LOG(INFO) << "stdout:" << (len=read(stdoutPipe->getRead(), buf, sizeof(buf))) << std::endl;
@@ -230,7 +236,7 @@ public:
     // sr.exitCode = WEXITSTATUS(sr.statusCode);
     //LOG(INFO) << " WIFEXITED(status):" << WIFEXITED(status) << std::endl;
     //std::cout << sr.waitPid << ":" << sr.exitCode << "--" << sr.sout.str() << "--" << sr.serr.str() << std::endl;
-    sr.ok = !(sr.exitCode == 42 && sr.sout.str() == sr.serr.str() && sr.sout.str() == "[exec failed]");
+    sr.ok = !(sr.exitCode == 42 && sr.getSout().str() == sr.getSerr().str() && sr.getSout().str() == "[exec failed]");
     sr.cmd = this->dump();
     //LOG(INFO) << sr.ok << ":" << dump();
     return sr;

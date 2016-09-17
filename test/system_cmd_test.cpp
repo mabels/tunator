@@ -1,3 +1,4 @@
+#include <chrono>
 
 #include "chai.hpp"
 #include "mocha.hpp"
@@ -45,19 +46,19 @@ int main() {
         Chai::assert.equal(1, SystemCmd(EXEC_FALSE).run().exitCode);
     });
     it("stdout empty", []() {
-        Chai::assert.isTrue(SystemCmd(EXEC_TRUE).run().sout.str().empty());
+        Chai::assert.isTrue(SystemCmd(EXEC_TRUE).run().getSout().str().empty());
     });
     it("stderr empty", []() {
-        Chai::assert.isTrue(SystemCmd(EXEC_TRUE).run().serr.str().empty());
+        Chai::assert.isTrue(SystemCmd(EXEC_TRUE).run().getSerr().str().empty());
     });
 
     it("stdout hello world", []() {
-        Chai::assert.equal(SystemCmd(EXEC_ECHO).arg("hello world").run().sout.str(), "hello world\n");
-        Chai::assert.equal(SystemCmd(EXEC_ECHO).arg("hello world").run().serr.str(), "");
+        Chai::assert.equal(SystemCmd(EXEC_ECHO).arg("hello world").run().getSout().str(), "hello world\n");
+        Chai::assert.equal(SystemCmd(EXEC_ECHO).arg("hello world").run().getSerr().str(), "");
     });
     it("stderr output", []() {
-        Chai::assert.isTrue(SystemCmd(EXEC_GREP).arg("---Fehler").run().sout.str().empty());
-        Chai::assert.isFalse(SystemCmd(EXEC_GREP).arg("---Fehler").run().serr.str().empty());
+        Chai::assert.isTrue(SystemCmd(EXEC_GREP).arg("---Fehler").run().getSout().str().empty());
+        Chai::assert.isFalse(SystemCmd(EXEC_GREP).arg("---Fehler").run().getSerr().str().empty());
     });
   });
   exit();

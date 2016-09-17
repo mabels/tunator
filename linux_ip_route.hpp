@@ -66,7 +66,7 @@ class LinuxIpRoute {
         return Err<std::vector<IPRoute>>("failure while running ip command");
       }
       std::stringstream s2; 
-      s2 << srv4.sout.str() << srv6.sout.str();
+      s2 << srv4.getSout().str() << srv6.getSout().str();
       return LinuxIpRoute::parse(s2.str());
     }
     static Result<std::vector<IPRoute>> parse(const std::string &_lines) {
