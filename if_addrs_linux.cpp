@@ -23,6 +23,7 @@ std::vector<SystemCmd> IfAddrs::asCommands(const std::string &dev) const {
 #ifdef TEST
 const char *IfAddrsRef[] = {
              "/sbin/ip addr add 10.1.0.1/24 dev DEV",
+             "/sbin/ip addr add fd00::1000/112 dev DEV",
              "/sbin/ip addr add 10.2.0.1/24 dev DEV",
              "/sbin/ip route add 172.16.0.1/24 via 172.16.0.254 dev DEV",
              "/sbin/ip route add 172.17.0.1/24 via 172.17.0.254 dev DEV",

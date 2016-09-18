@@ -44,6 +44,17 @@ namespace Chai {
           throw AssertError(s2.str().c_str());
         }
       }
+      template<typename T> void equal(T t1, T t2, const char *msg = "") {
+        ++count;
+        if (t1 != t2) {
+          std::stringstream s2;
+          s2 << "is not equal ";
+          s2 << t1 << "==" << t2 << ". ";
+          s2 << msg;
+          throw AssertError(s2.str().c_str());
+        }
+      }
+
       void equal(const std::string &t1, const char *t2, const char *msg = "") {
         this->equal(t1, std::string(t2), msg);
       }
@@ -52,6 +63,12 @@ namespace Chai {
       }
       void equal(const char *t1, const char *t2, const char *msg = "") {
         this->equal(std::string(t1), std::string(t2), msg);
+      }
+      void equal(unsigned int t1, unsigned int t2, const char *msg = "") {
+        this->equal<unsigned int>(t1, t2, msg);
+      }
+      void equal(size_t t1, size_t t2, const char *msg = "") {
+        this->equal<size_t>(t1, t2, msg);
       }
       void equal(unsigned char t1, unsigned char t2, const char *msg = "") {
         ++count;
@@ -65,16 +82,6 @@ namespace Chai {
           throw AssertError(s2.str().c_str());
         }
 
-      }
-      template<typename T> void equal(T t1, T t2, const char *msg = "") {
-        ++count;
-        if (t1 != t2) {
-          std::stringstream s2;
-          s2 << "is not equal ";
-          s2 << t1 << "==" << t2 << ". ";
-          s2 << msg;
-          throw AssertError(s2.str().c_str());
-        }
       }
       static std::string vec_to_string(size_t m, const std::vector<unsigned char> &t) {
         std::stringstream s2;

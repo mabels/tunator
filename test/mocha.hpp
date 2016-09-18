@@ -43,8 +43,7 @@ void describe(const char *title, const MochaAction &action) {
   describeContext = title;
   (action)();
 }
-
-void it(const char *title, const MochaAction &action) {
+void it(const std::string &title, const MochaAction &action) {
   try {
     (action)();
 

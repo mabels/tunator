@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include <algorithm>
 #include <chrono>
 #include <sstream>
@@ -44,11 +45,11 @@ class PacketStatistic {
       val["pushFailed"] = Json::Value((Json::UInt64)pushFailed);
     }
   };
-  system_clock::time_point started;
+  std::chrono::time_point<std::chrono::system_clock> started;
   Data current;
   Data total;
 public:
-  PacketStatistic() : started(system_clock::now()) {
+  PacketStatistic() : started(std::chrono::system_clock::now()) {
   }
   void incAllocFailed() { ++current.allocFailed; }
   void incAllocOk() { ++current.allocOk; }
@@ -65,13 +66,23 @@ public:
 
   const Data& getCurrent() const { return current; }
   const Data& getTotal() const { return total; }
-  system_clock::time_point getStarted() const { return started; }
+  const std::chrono::time_point<std::chrono::system_clock> getStarted() const { return started; }
 
   PacketStatistic collect() {
     // loosing a bit
     PacketStatistic ret;
+    //std::cout << "0=> ret=" <<
+    //  std::chrono::duration_cast<std::chrono::milliseconds>(ret.started.time_since_epoch()).count()
+    //          << " this=" <<
+    //  std::chrono::duration_cast<std::chrono::milliseconds>(this->started.time_since_epoch()).count()
+    //          << std::endl;
     std::swap(ret.current, this->current);
     std::swap(ret.started, this->started);
+    //std::cout << "1=> ret=" <<
+    //  std::chrono::duration_cast<std::chrono::milliseconds>(ret.started.time_since_epoch()).count()
+    //          << " this=" <<
+    //  std::chrono::duration_cast<std::chrono::milliseconds>(this->started.time_since_epoch()).count()
+    //          << std::endl;
     total.allocFailed += ret.current.allocFailed;
     total.allocOk += ret.current.allocOk;
     total.pushActionFailed += ret.current.pushActionFailed;

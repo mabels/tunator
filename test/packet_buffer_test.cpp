@@ -1,56 +1,51 @@
 #include "../packet_buffer.hpp"
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 #include <thread>
 
 using std::cerr;
 using std::endl;
 using std::chrono::system_clock;
 
+#include "chai.hpp"
+#include "mocha.hpp"
+
 int main() {
-  PacketBuffer pb(1313, 100);
+  describe("PacketBuffer", []() {
+    PacketBuffer pb(1313, 100);
 
-  if (pb.getPacketSize() != 1320) {
-    cerr << "getPacketSize total failed" << endl;
-    return 1;
-  }
-  if (pb.getMtu() != 1313) {
-    cerr << "getMtu total failed" << endl;
-    return 1;
-  }
-  if (pb.getSize() != 100) {
-    cerr << "getSize total failed" << endl;
-    return 1;
-  }
-  Packet *packets[pb.getSize()];
-  for (size_t i = 0; i < pb.getSize(); ++i) {
-      packets[i] = pb.alloc();
-      if (packets[i] == 0) {
-        cerr << "alloc failed for " << i << endl;
-        return 1;
+    it("packetSize 1320",
+       [&pb]() { Chai::assert.equal(pb.getPacketSize(), 1320ul); });
+    it("mtu 1313", [&pb]() { Chai::assert.equal(1313ul, pb.getMtu()); });
+    it("size 100", [&pb]() { Chai::assert.equal(100ul, pb.getSize()); });
+
+    Packet *packets[pb.getSize()];
+    it("fill to 100", [&packets, &pb]() {
+      for (size_t i = 0; i < pb.getSize(); ++i) {
+        packets[i] = pb.alloc();
+        Chai::assert.isFalse(packets[i] == 0);
       }
-  }
-  for (size_t i = 0; i < pb.getSize(); ++i) {
-      if (pb.alloc() != 0) {
-        cerr << "full alloc failed for " << i << endl;
-        return 1;
+    });
+    it("overfill to 100", [&packets, &pb]() {
+      for (size_t i = 0; i < pb.getSize(); ++i) {
+        Chai::assert.isTrue(pb.alloc() == 0);
       }
-  }
-  auto pkt = packets[pb.getSize()/2];
-  pkt->free();
-  if (pb.alloc() != pkt) {
-        cerr << "new alloc failed" << endl;
-  }
+    });
 
-  for (size_t i = 0; i < pb.getSize(); ++i) {
-    packets[i]->free();
-    packets[i] = pb.alloc();
-    if (packets[i] == 0) {
-      cerr << "free alloc failed for " << i << endl;
-      return 1;
-    }
-  }
+    it("free to 50", [&packets, &pb]() {
+      auto pkt = packets[pb.getSize() / 2];
+      pkt->free();
+      Chai::assert.isTrue(pb.alloc() == pkt);
+    });
 
-  return 0;
+    it("free to all", [&packets, &pb]() {
+      for (size_t i = 0; i < pb.getSize(); ++i) {
+        packets[i]->free();
+        packets[i] = pb.alloc();
+        Chai::assert.isFalse(packets[i] == 0);
+      }
+    });
+  });
+  exit();
 }
