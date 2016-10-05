@@ -20,6 +20,6 @@ ExternalProject_Get_Property(ipaddress install_dir)
 include_directories(${install_dir}/include)
 
 set(ipaddress_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/3rdparty/ipaddress/cpp/src")
-set(ipaddress_LIBRARIES "${CMAKE_SOURCE_DIR}/3rdparty/ipaddress/cpp/debug/${CMAKE_BUILD_TYPE}/${CMAKE_SYSTEM_NAME}/${CMAKE_STATIC_LIBRARY_PREFIX}ipaddress${CMAKE_STATIC_LIBRARY_SUFFIX}")
+set(ipaddress_LIBRARIES "${CMAKE_SOURCE_DIR}/3rdparty/ipaddress/cpp/${CMAKE_BUILD_TYPE}/${CMAKE_SYSTEM_NAME}/${CMAKE_STATIC_LIBRARY_PREFIX}ipaddress${CMAKE_STATIC_LIBRARY_SUFFIX}")
 include_directories(${ipaddress_INCLUDE_DIRS})
 
