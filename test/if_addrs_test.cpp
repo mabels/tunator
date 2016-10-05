@@ -3,7 +3,7 @@
 #include <iostream>
 #include <map>
 
-#include <ipaddress.hpp>
+#include <ipaddress/ipaddress.hpp>
 
 #include "chai.hpp"
 #include "mocha.hpp"

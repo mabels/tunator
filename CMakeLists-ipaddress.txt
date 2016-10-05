@@ -11,7 +11,7 @@ ExternalProject_Add(
 
   #UPDATE_COMMAND "${CMAKE_COMMAND} cpp"
   #BUILD_COMMAND "make"
-  INSTALL_COMMAND ""
+  #INSTALL_COMMAND ""
   TEST_COMMAND ""
 )
 

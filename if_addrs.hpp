@@ -15,8 +15,13 @@
 #include <json/json.h>
 
 #include "system_cmd.hpp"
-#include <ipaddress.hpp>
-#include <result.hpp>
+#include <ipaddress/ipaddress.hpp>
+#include <ipaddress/result.hpp>
+
+using ipaddress::Err;
+using ipaddress::Ok;
+using ipaddress::Result;
+using ipaddress::IPAddress;
 
 class IfAddrs {
   public:

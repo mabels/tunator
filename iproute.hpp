@@ -1,7 +1,10 @@
 #ifndef __IPROUTE__
 #define __IPROUTE__
 
-#include "ipaddress.hpp"
+#include <ipaddress/ipaddress.hpp>
+
+using ipaddress::IPAddress;
+using ipaddress::Option;
 
 class IPRoute {
   public:

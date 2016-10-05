@@ -9,6 +9,13 @@
 #include "iproute.hpp"
 #include "system_cmd.hpp"
 
+using ipaddress::Result;
+using ipaddress::Err;
+using ipaddress::Ok;
+using ipaddress::Some;
+using ipaddress::None;
+using ipaddress::IPAddress;
+
 class LinuxIpRoute {
   public:
     static std::string serialize(const IPRoute &ipr) {

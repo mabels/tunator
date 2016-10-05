@@ -24,7 +24,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <result.hpp>
+#include <ipaddress/result.hpp>
+
+using ipaddress::Result;
+using ipaddress::Err;
+using ipaddress::Ok;
 
 class FileDescriptor {
   int fd;
