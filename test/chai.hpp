@@ -67,8 +67,8 @@ namespace Chai {
       void equal(unsigned int t1, unsigned int t2, const char *msg = "") {
         this->equal<unsigned int>(t1, t2, msg);
       }
-      void equal(size_t t1, size_t t2, const char *msg = "") {
-        this->equal<size_t>(t1, t2, msg);
+      void equal(unsigned long t1, unsigned long t2, const char *msg = "") {
+        this->equal<unsigned long>(t1, t2, msg);
       }
       void equal(unsigned char t1, unsigned char t2, const char *msg = "") {
         ++count;
