@@ -72,7 +72,7 @@ public:
       } else {
         ps.incAllocFailed();
       }
-      wait = std::min(wait, 100ul);
+      wait = std::min(wait, static_cast<size_t>(100u));
       tw += wait;
       //LOG(INFO) << "Qpush:wait";
       std::this_thread::sleep_for(std::chrono::milliseconds(wait));
