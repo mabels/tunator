@@ -29,7 +29,7 @@ int main() {
       Chai::assert.isTrue(ps.getCurrent().allocOk == 1);
     });
     it("1-incAllocOk total", [&ps]() {
-      Chai::assert.equal(ps.getTotal().allocOk, 0);
+      Chai::assert.equal(ps.getTotal().allocOk, 0u);
     });
     auto collected = ps.collect();
     started = collected.getStarted();
@@ -43,17 +43,17 @@ int main() {
       Chai::assert.isTrue(started == collected.getStarted());
     });
     it("collected current", [&ps]() {
-      Chai::assert.equal(ps.getCurrent().allocOk, 0);
+      Chai::assert.equal(ps.getCurrent().allocOk, 0u);
     });
     it("collected total", [&ps]() {
-      Chai::assert.equal(ps.getTotal().allocOk, 1);
+      Chai::assert.equal(ps.getTotal().allocOk, 1u);
     });
     ps.incAllocOk();
     it("2-incAllocOk current", [&ps]() {
-      Chai::assert.equal(ps.getCurrent().allocOk, 1);
+      Chai::assert.equal(ps.getCurrent().allocOk, 1u);
     });
     it("2-incAllocOk total", [&ps]() {
-      Chai::assert.equal(ps.getTotal().allocOk, 1);
+      Chai::assert.equal(ps.getTotal().allocOk, 1u);
     });
     //std::cout << "Pre=> ret=" <<
      // std::chrono::duration_cast<std::chrono::milliseconds>(collected.getStarted().time_since_epoch()).count()
@@ -74,7 +74,7 @@ int main() {
       Chai::assert.isTrue(milli.count() >= 100);
     });
     it("3-incAllocOk current", [&ps]() {
-      Chai::assert.equal(ps.getCurrent().allocOk, 0);
+      Chai::assert.equal(ps.getCurrent().allocOk, 0u);
     });
     it("3-incAllocOk total", [&ps]() {
       Chai::assert.isTrue(ps.getTotal().allocOk != 0);

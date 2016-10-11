@@ -64,6 +64,12 @@ namespace Chai {
       void equal(const char *t1, const char *t2, const char *msg = "") {
         this->equal(std::string(t1), std::string(t2), msg);
       }
+      void equal(unsigned long t1, unsigned int t2, const char *msg = "") {
+        this->equal<unsigned int>(static_cast<unsigned int>(t1), t2, msg);
+      }
+      void equal(unsigned int t1, unsigned long t2, const char *msg = "") {
+        this->equal<unsigned int>(t1, static_cast<unsigned int>(t2), msg);
+      }
       void equal(unsigned int t1, unsigned int t2, const char *msg = "") {
         this->equal<unsigned int>(t1, t2, msg);
       }
