@@ -2,7 +2,7 @@ include(ExternalProject)
 ExternalProject_Add(
   ipaddress
 
-  GIT_REPOSITORY "https://github.com/mabels/ipaddress.git"
+  GIT_REPOSITORY "${GITBASE}/mabels/ipaddress.git"
   GIT_TAG "master"
 
 

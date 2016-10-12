@@ -20,6 +20,11 @@ if(APPLE)
   set(OPENSSL_ROOT_DIR "/usr/local/opt/openssl")
 endif()
 
+if(NOT GITBASE)
+  set(GITBASE https://github.com)
+endif()
+
+
 include(CMakeLists-Simple-WebSocket.txt)
 include(CMakeLists-easyloggingpp.txt)
 include(CMakeLists-ipaddress.txt)
@@ -35,6 +40,11 @@ find_package(Threads REQUIRED)
 
 include_directories(.)
 
+
+#set_target_properties(main PROPERTIES LINK_SEARCH_START_STATIC 1)
+#set_target_properties(main PROPERTIES LINK_SEARCH_END_STATIC 1)
+#set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+#set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 add_executable(main main.cpp tunator.cpp tun_device.cpp if_addrs_macos.cpp if_addrs_linux.cpp)
 add_dependencies(main SimpleWebSocketServer)
 add_dependencies(main jsoncpp)
