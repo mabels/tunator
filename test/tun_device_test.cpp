@@ -6,8 +6,9 @@
 
 #include <boost/thread.hpp>
 
-#include "chai.hpp"
-#include "mocha.hpp"
+#include <cascara/cascara.hpp>
+using namespace cascara;
+
 
 using std::cerr;
 using std::endl;
@@ -29,11 +30,11 @@ int main() {
         std::thread t([&tun]() {
           std::this_thread::sleep_for(std::chrono::milliseconds(200));
         });
-        Chai::assert.isTrue(tun.start());
+        assert.isTrue(tun.start());
         t.join();
         tun.stop();
       }
-      Chai::assert.isTrue(tun.start());
+      assert.isTrue(tun.start());
     });
 
     boost::mutex mutex;
@@ -89,10 +90,10 @@ int main() {
     it("compare results", [&tun]() {
       auto fromTunPs = tun.getFromTun().getStatistic();
       // cerr << fromTunPs.asString();
-      Chai::assert.equal(fromTunPs.getCurrent().pushOk, fromTunPs.getCurrent().popOk);
+      assert.equal(fromTunPs.getCurrent().pushOk, fromTunPs.getCurrent().popOk);
       auto toTunPs = tun.getToTun().getStatistic();
       // cerr << toTunPs.asString();
-      Chai::assert.equal(toTunPs.getCurrent().pushOk, toTunPs.getCurrent().popOk);
+      assert.equal(toTunPs.getCurrent().pushOk, toTunPs.getCurrent().popOk);
     });
   });
   exit();

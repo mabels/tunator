@@ -12,8 +12,9 @@ using std::cerr;
 using std::endl;
 using std::chrono::system_clock;
 
-#include "chai.hpp"
-#include "mocha.hpp"
+#include <cascara/cascara.hpp>
+using namespace cascara;
+
 
 int main() {
   describe("PacketStatistic", []() {
@@ -22,14 +23,14 @@ int main() {
     // std::chrono::duration<float> difference = started - system_clock::now();
     // it("started should take less than 50msec", [difference]() {
     //   auto milli = std::chrono::duration_cast<std::chrono::milliseconds>(difference);
-    //   Chai::assert.isTrue(milli.count() < 50);
+    //   assert.isTrue(milli.count() < 50);
     // });
     ps.incAllocOk();
     it("1-incAllocOk current", [&ps]() {
-      Chai::assert.isTrue(ps.getCurrent().allocOk == 1);
+      assert.isTrue(ps.getCurrent().allocOk == 1);
     });
     it("1-incAllocOk total", [&ps]() {
-      Chai::assert.equal(ps.getTotal().allocOk, 0u);
+      assert.equal(ps.getTotal().allocOk, 0u);
     });
     auto collected = ps.collect();
     started = collected.getStarted();
@@ -40,20 +41,20 @@ int main() {
 
     //std::cout << "1-started:" << started.rep << std::endl;
     it("1-collected started", [&ps, started, collected]() {
-      Chai::assert.isTrue(started == collected.getStarted());
+      assert.isTrue(started == collected.getStarted());
     });
     it("collected current", [&ps]() {
-      Chai::assert.equal(ps.getCurrent().allocOk, 0u);
+      assert.equal(ps.getCurrent().allocOk, 0u);
     });
     it("collected total", [&ps]() {
-      Chai::assert.equal(ps.getTotal().allocOk, 1u);
+      assert.equal(ps.getTotal().allocOk, 1u);
     });
     ps.incAllocOk();
     it("2-incAllocOk current", [&ps]() {
-      Chai::assert.equal(ps.getCurrent().allocOk, 1u);
+      assert.equal(ps.getCurrent().allocOk, 1u);
     });
     it("2-incAllocOk total", [&ps]() {
-      Chai::assert.equal(ps.getTotal().allocOk, 1u);
+      assert.equal(ps.getTotal().allocOk, 1u);
     });
     //std::cout << "Pre=> ret=" <<
      // std::chrono::duration_cast<std::chrono::milliseconds>(collected.getStarted().time_since_epoch()).count()
@@ -71,13 +72,13 @@ int main() {
     it("2-collected started", [difference]() {
       auto milli = std::chrono::duration_cast<std::chrono::milliseconds>(difference);
       //std::cout << "difference:" << milli.count() << std::endl;
-      Chai::assert.isTrue(milli.count() >= 100);
+      assert.isTrue(milli.count() >= 100);
     });
     it("3-incAllocOk current", [&ps]() {
-      Chai::assert.equal(ps.getCurrent().allocOk, 0u);
+      assert.equal(ps.getCurrent().allocOk, 0u);
     });
     it("3-incAllocOk total", [&ps]() {
-      Chai::assert.isTrue(ps.getTotal().allocOk != 0);
+      assert.isTrue(ps.getTotal().allocOk != 0);
     });
   });
   exit();

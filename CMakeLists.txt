@@ -29,6 +29,7 @@ include(CMakeLists-Simple-WebSocket.txt)
 include(CMakeLists-easyloggingpp.txt)
 include(CMakeLists-ipaddress.txt)
 include(CMakeLists-jsoncpp.txt)
+include(CMakeLists-cascara.txt)
 
 #set(SIMPLEWEB_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/3rdparty/Simple-WebSocket-Server")
 #TODO: add requirement for version 1.0.1g (can it be done in one line?)

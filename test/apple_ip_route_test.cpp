@@ -1,5 +1,6 @@
-#include "mocha.hpp"
-#include "chai.hpp"
+#include <cascara/cascara.hpp>
+using namespace cascara;
+
 #include "../apple_ip_route.hpp"
 
 int main() {
@@ -31,8 +32,8 @@ int main() {
         "224.0.0.251        1:0:5e:0:0:fb      UHmLWI          1        0     en0" << std::endl << 
         "255.255.255.255/32 link#4             UCS             1        0     en0" << std::endl;
         auto iproute = AppleIpRoute::parse(s2.str());
-        Chai::assert.isFalse(iproute.isErr());
-        Chai::assert.equal(s2.str(), AppleIpRoute::serialize(iproute.unwrap()));
+        assert.isFalse(iproute.isErr());
+        assert.equal(s2.str(), AppleIpRoute::serialize(iproute.unwrap()));
     });
     it("ip route add", []() {
         std::stringstream s2;
@@ -40,7 +41,7 @@ int main() {
           "default via 172.31.1.1 dev eth0" << std::endl <<
           "169.254.12.0/24 dev br12 proto kernel scope link src 169.254.12.1" << std::endl;
         auto iproute = AppleIpRoute::parse(s2.str()).unwrap();
-        Chai::assert.deepEqual(AppleIpRoute::add(iproute),
+        assert.deepEqual(AppleIpRoute::add(iproute),
             {"/sbin/ip route add default via 172.31.1.1 dev eth0",
              "/sbin/ip route add 169.254.12.0/24 dev br12 proto kernel scope link src 169.254.12.1"});
     });
@@ -50,7 +51,7 @@ int main() {
           "default via 172.31.1.1 dev eth0" << std::endl <<
           "169.254.12.0/24 dev br12 proto kernel scope link src 169.254.12.1" << std::endl;
         auto iproute = AppleIpRoute::parse(s2.str()).unwrap();
-        Chai::assert.deepEqual(AppleIpRoute::del(iproute),
+        assert.deepEqual(AppleIpRoute::del(iproute),
             {"/sbin/ip route del default via 172.31.1.1 dev eth0",
              "/sbin/ip route del 169.254.12.0/24 dev br12 proto kernel scope link src 169.254.12.1"});
     });

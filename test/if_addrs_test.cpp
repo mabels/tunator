@@ -5,8 +5,10 @@
 
 #include <ipaddress/ipaddress.hpp>
 
-#include "chai.hpp"
-#include "mocha.hpp"
+
+#include <cascara/cascara.hpp>
+using namespace cascara;
+
 
 //#include <boost/property_tree/json_parser.hpp>
 //#include <boost/property_tree/ptree.hpp>
@@ -38,7 +40,7 @@ int main() {
         {"200:200:200::200/129", false}};
     for (const auto &kv : testIsValidWithPrefix) {
       auto ipa = IPAddress::parse(kv.first);
-      it(kv.first, [kv, ipa]() { Chai::assert.equal(kv.second, ipa.isOk()); });
+      it(kv.first, [kv, ipa]() { assert.equal(kv.second, ipa.isOk()); });
       // if (kv.second != ipa.isOk()) {
       //   cerr << "IfAddrs::isValidWithPrefix failed on|" << kv.first << "|"
       //        << kv.second << endl;
@@ -54,7 +56,7 @@ int main() {
         {"1:2:3::4", true}};
     for (const auto &kv : testIsValidWithoutPrefix) {
       auto ipa = IPAddress::parse(kv.first);
-      it(kv.first, [kv, ipa]() { Chai::assert.equal(kv.second, ipa.isOk()); });
+      it(kv.first, [kv, ipa]() { assert.equal(kv.second, ipa.isOk()); });
     }
     // if (kv.second != ipa.isOk()) {
     //   // if (kv.second != IfAddrs::isValidWithoutPrefix(kv.first)) {
@@ -73,21 +75,21 @@ int main() {
     it("addAddr", [&ia]() {
       ia.addAddr("10.1.0.1/24");
       ia.addAddr("fd00::1000/112");
-      Chai::assert.isTrue(ia.addAddr("10.2.0.1/24"));
-      Chai::assert.isFalse(ia.addAddr("256.2.0.1/24"));
+      assert.isTrue(ia.addAddr("10.2.0.1/24"));
+      assert.isFalse(ia.addAddr("256.2.0.1/24"));
     });
 
     it("addRoute", [&ia]() {
       ia.addRoute(
           IfAddrs::RouteVia::create("172.16.0.1/24", "172.16.0.254").unwrap());
-      Chai::assert.isTrue(ia.addRoute(
+      assert.isTrue(ia.addRoute(
           IfAddrs::RouteVia::create("172.17.0.1/24", "172.17.0.254").unwrap()), "-1-");
-      Chai::assert.isTrue(
+      assert.isTrue(
           IfAddrs::RouteVia::create("300.17.0.1/24", "172.17.0.254").isErr(), "-2-");
-      Chai::assert.isTrue(
+      assert.isTrue(
           IfAddrs::RouteVia::create("129.17.0.1/24", "172.17.0.254/23")
               .isErr(), "-3-");
-      Chai::assert.isTrue(
+      assert.isTrue(
           IfAddrs::RouteVia::create("129.17.0.1/24", "172.17.0.354").isErr(), "-4-");
     });
 
@@ -96,7 +98,7 @@ int main() {
       extern char *IfAddrsRef[];
       int idx = 0;
       for (auto cmd : cmds) {
-        Chai::assert.equal(cmd.dump(), IfAddrsRef[idx]);
+        assert.equal(cmd.dump(), IfAddrsRef[idx]);
         ++idx;
       }
     });
@@ -115,7 +117,7 @@ int main() {
       Json::Value out;
       my.asJson(out);
       auto to = styledWriter.write(out);
-      Chai::assert.equal(from, to);
+      assert.equal(from, to);
     });
 
     it("asJson-2", []() {
@@ -134,7 +136,7 @@ int main() {
       Json::Value out;
       my.asJson(out);
       auto to = styledWriter.write(out);
-      Chai::assert.equal(from, to);
+      assert.equal(from, to);
     });
   });
   exit();
